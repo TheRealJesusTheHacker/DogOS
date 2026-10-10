@@ -1,0 +1,6 @@
+# DogOS firmware — wifi/gpu for live-boot on real hardware
+firmware-iwlwifi
+firmware-realtek
+firmware-sof-signed
+firmware-amd-graphics
+firmware-misc-nonfree

@@ -1,0 +1,28 @@
+#!/bin/bash
+# dogos-engage — explicit firewall exceptions for engagement listeners.
+# The firewall stays ON (default-deny); you open only what the engagement needs.
+# Usage: dogos-engage open 4444 8000 | dogos-engage close | dogos-engage status
+set -euo pipefail
+TABLE="inet dogos"
+
+case "${1:-}" in
+  open)
+    shift
+    [ $# -eq 0 ] && { echo "usage: dogos-engage open <port> [port...]"; exit 1; }
+    for p in "$@"; do
+      nft add rule $TABLE input tcp dport "$p" accept
+      echo "opened TCP/$p (engagement exception — visible, deliberate)"
+    done
+    ;;
+  close)
+    nft -f /etc/nftables.conf
+    echo "engagement exceptions cleared; base policy restored"
+    ;;
+  status)
+    nft list chain $TABLE input
+    ;;
+  *)
+    echo "usage: dogos-engage {open <port> [port...]|close|status}"
+    exit 1
+    ;;
+esac

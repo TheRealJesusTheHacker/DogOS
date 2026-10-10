@@ -1,0 +1,19 @@
+#!/bin/bash
+# dogos-hostname — randomize the hostname on live boot (amnesiac mode).
+# Installed systems keep their configured hostname; only live media
+# gets a fresh identity every boot.
+set -euo pipefail
+
+# live media mount points (new and old live-boot layouts)
+if [ ! -e /run/live/medium ] && [ ! -e /lib/live/mount/medium ]; then
+  exit 0
+fi
+
+WORDS=(hound doberman ghost shadow fang onyx jet rook sable echo)
+NAME="dogos-${WORDS[$RANDOM % ${#WORDS[@]}]}-$((RANDOM % 9000 + 1000))"
+if command -v hostnamectl >/dev/null 2>&1; then
+  hostnamectl set-hostname "$NAME" 2>/dev/null || true
+else
+  hostname "$NAME" 2>/dev/null || true
+fi
+echo "amnesiac hostname: $NAME"

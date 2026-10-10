@@ -1,0 +1,12 @@
+# DogOS desktop — MATE on X11 (spec section 6)
+xorg
+mate-desktop-environment
+mate-desktop-environment-extras
+lightdm
+lightdm-gtk-greeter
+network-manager
+network-manager-applet
+firefox-esr
+webp-pixbuf-loader
+plymouth
+calamares

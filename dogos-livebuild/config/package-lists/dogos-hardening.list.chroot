@@ -1,0 +1,6 @@
+# DogOS hardening (spec section 7)
+nftables
+apparmor
+apparmor-profiles
+apparmor-utils
+bubblewrap

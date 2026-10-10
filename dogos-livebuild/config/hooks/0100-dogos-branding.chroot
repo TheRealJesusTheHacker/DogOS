@@ -1,0 +1,25 @@
+#!/bin/sh
+# DogOS branding hook (chroot). Spec section 1.
+set -e
+
+# Wallpaper default for MATE (dconf override for the live user skeleton)
+mkdir -p /etc/dconf/db/local.d
+cat > /etc/dconf/db/local.d/99-dogos-wallpaper <<'EOF'
+[org/mate/desktop/background]
+picture-filename='/usr/share/backgrounds/dogos/dogos-wallpaper.webp'
+picture-options='zoom'
+primary-color='#000000'
+EOF
+dconf update || true
+
+# Plymouth animated splash (theme ships in includes.chroot)
+if command -v plymouth-set-default-theme >/dev/null 2>&1; then
+  plymouth-set-default-theme -R dogos || plymouth-set-default-theme dogos || true
+fi
+
+# Calamares: use DogOS branding
+if [ -f /etc/calamares/settings.conf ]; then
+  sed -i 's/^branding:.*/branding: dogos/' /etc/calamares/settings.conf || true
+fi
+
+echo "dogos branding hook done"

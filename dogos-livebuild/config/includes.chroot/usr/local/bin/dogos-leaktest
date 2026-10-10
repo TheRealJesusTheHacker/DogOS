@@ -1,0 +1,23 @@
+#!/bin/bash
+# dogos-leaktest — verify Ghost mode isn't leaking.
+# Run AFTER `dogos-ghost on`. Honest output, no theater.
+set -uo pipefail
+
+echo "== Tor check =="
+TOR_JSON="$(curl -s --max-time 15 https://check.torproject.org/api/ip || true)"
+if [ -z "$TOR_JSON" ]; then
+  echo "FAILED: could not reach check.torproject.org"
+else
+  echo "$TOR_JSON"
+fi
+echo ""
+echo "== DNS egress check (which resolver IP do outsiders see?) =="
+DNS_IP="$(dig +short +time=5 +tries=2 myip.opendns.com @208.67.222.222 || true)"
+echo "egress as seen by OpenDNS: ${DNS_IP:-FAILED}"
+echo ""
+echo "== Interpretation =="
+echo "  Ghost ON : IsTor should be true; DNS egress should be a Tor exit,"
+echo "             NOT your ISP or LAN resolver."
+echo "  Ghost OFF: IsTor false; egress is your real network."
+echo "  Non-DNS UDP and ICMP bypass Ghost mode entirely — test those"
+echo "  separately if your workflow uses them."

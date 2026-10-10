@@ -1,0 +1,52 @@
+#!/bin/sh
+# DogOS amnesiac boot entry (binary stage hook).
+# Clones the default live boot entry and adds `toram`, so the whole system
+# runs from RAM — nothing is written to host disks.
+# Defensive: bootloader layouts vary across live-build versions, so every
+# path is probed and anything unrecognized is skipped with a warning.
+set -e
+
+# --- syslinux / isolinux (BIOS) ---
+for cfg in binary/isolinux/live.cfg binary/isolinux/isolinux.cfg; do
+  [ -f "$cfg" ] || continue
+  if grep -q '^label live-amnesiac' "$cfg"; then
+    echo "amnesiac entry already present in $cfg"
+    continue
+  fi
+  # first label block: from '^label ' to the first blank line
+  awk '/^label /{c++} c==1{print} c==1 && /^$/{exit}' "$cfg" > /tmp/dogos-amn-entry.txt
+  if [ -s /tmp/dogos-amn-entry.txt ]; then
+    {
+      echo ""
+      sed -e 's/^label [^ ]*/label live-amnesiac/' \
+          -e '/menu default/d' \
+          -e 's/menu label .*/menu label ^DogOS amnesiac (RAM only)/' \
+          -e 's/^\([[:space:]]*append .*\)/\1 toram/' \
+          /tmp/dogos-amn-entry.txt
+    } >> "$cfg"
+    echo "amnesiac entry added to $cfg"
+  else
+    echo "WARNING: no parseable boot entry in $cfg — amnesiac entry skipped"
+  fi
+done
+
+# --- GRUB (UEFI) ---
+cfg="binary/boot/grub/grub.cfg"
+if [ -f "$cfg" ]; then
+  if grep -q 'DogOS amnesiac' "$cfg"; then
+    echo "amnesiac entry already present in $cfg"
+  else
+    # first menuentry block: from '^menuentry ' to the closing brace
+    awk '/^menuentry /{c++} c==1{print} c==1 && /^\}/{exit}' "$cfg" > /tmp/dogos-amn-grub.txt
+    if [ -s /tmp/dogos-amn-grub.txt ]; then
+      sed -e 's/^menuentry "[^"]*"/menuentry "DogOS amnesiac (RAM only)"/' \
+          -e 's/^\([[:space:]]*linux .*\)/\1 toram/' \
+          /tmp/dogos-amn-grub.txt >> "$cfg"
+      echo "amnesiac entry added to $cfg"
+    else
+      echo "WARNING: no parseable menuentry in $cfg — amnesiac entry skipped"
+    fi
+  fi
+fi
+
+echo "dogos amnesiac binary hook done"

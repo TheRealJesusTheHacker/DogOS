@@ -1,0 +1,5 @@
+#!/bin/sh
+# DogOS scripts hook (chroot) — make sure helpers are executable.
+set -e
+chmod 0755 /usr/local/bin/dogos-*
+echo "dogos scripts hook done"

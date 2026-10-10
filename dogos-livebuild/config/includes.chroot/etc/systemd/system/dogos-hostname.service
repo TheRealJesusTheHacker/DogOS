@@ -1,0 +1,14 @@
+[Unit]
+Description=DogOS amnesiac hostname randomization (live boot only)
+ConditionPathExists=/run/live/medium
+ConditionPathExists=/lib/live/mount/medium
+After=network-pre.target
+Before=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/dogos-hostname
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

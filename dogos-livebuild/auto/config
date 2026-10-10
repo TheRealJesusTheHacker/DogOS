@@ -1,0 +1,23 @@
+#!/bin/sh
+# DogOS live-build entrypoint.
+# Usage: ./auto/config && sudo lb build   (needs live-build installed)
+# Targets the live-build 3.x CLI (verified 2026-10-10 against 3.0~a57).
+# NOTE 3.x differences from older guides: hooks live flat in
+# config/hooks/*.chroot|*.binary (no live/ subdir, no .hook infix),
+# --bootloader is singular, and --image-name is gone (rename the ISO
+# after build; build.sh documents it).
+set -e
+
+# Debian testing codename at time of writing: forky — verify before building.
+# `noauto` MUST be first: without it, lb_config re-executes ./auto/config
+# with the same arguments, recursing forever (verified the hard way).
+lb config noauto \
+  --distribution forky \
+  --archive-areas "main contrib non-free non-free-firmware" \
+  --debian-installer live \
+  --bootloader grub \
+  --binary-images iso-hybrid \
+  --iso-application "DogOS" \
+  --iso-publisher "Sentinel Safeguard LLC" \
+  --iso-volume "DogOS live" \
+  "$@"

@@ -1,0 +1,7 @@
+Origin: DogOS
+Label: DogOS Extras
+Codename: dogos
+Architectures: amd64
+Components: main
+Description: DogOS extras — tools not in Debian (LOIC fork post-audit, repackaged pip tools, dogos-* helpers)
+SignWith: FILL-IN-SIGNING-KEY-ID

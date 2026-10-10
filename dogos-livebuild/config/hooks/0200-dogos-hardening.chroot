@@ -1,0 +1,27 @@
+#!/bin/sh
+# DogOS hardening hook (chroot). Spec section 7.
+set -e
+
+# nftables base ruleset is in includes.chroot (/etc/nftables.conf); enable it
+systemctl enable nftables || true
+
+# AppArmor on (Debian enables by default; make it explicit)
+systemctl enable apparmor || true
+
+# Bluetooth: attack surface — off by default, one click to re-enable
+systemctl disable bluetooth || true
+
+# No listening services by default — mask the usual suspects
+for svc in avahi-daemon cups rpcbind nfs-client.target; do
+  systemctl mask "$svc" 2>/dev/null || true
+done
+
+# Bubblewrap: sandbox wrappers for high-risk apps (X11 keylogging mitigation).
+# Firefox-ESR gets a bwrap wrapper dropping unnecessary permissions.
+# TODO(build): write /usr/local/bin/firefox-esr-bwrap and point the .desktop at it.
+mkdir -p /etc/dogos/sandbox
+
+# Amnesiac identity: randomize hostname on live boot, randomize MACs always
+systemctl enable dogos-hostname || true
+
+echo "dogos hardening hook done"

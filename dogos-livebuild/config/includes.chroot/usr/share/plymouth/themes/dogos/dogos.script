@@ -1,0 +1,57 @@
+# DogOS Plymouth theme — pulsing Doberman emblem.
+# Frames: emblem-0.png .. emblem-7.png (512x512, derived from the Cyberdogs logo).
+# NOTE: test on real hardware — Plymouth script themes vary by GPU/driver.
+
+n_frames = 8;
+
+screen_w = Window.GetWidth ();
+screen_h = Window.GetHeight ();
+
+# --- emblem animation -------------------------------------------------------
+emblem = [];
+for (i = 0; i < n_frames; i++)
+    emblem[i] = Image ("emblem-" + i + ".png");
+
+ew = emblem[0].GetWidth ();
+eh = emblem[0].GetHeight ();
+
+emblem_sprite = Sprite ();
+emblem_sprite.SetPosition (screen_w / 2 - ew / 2, screen_h / 2 - eh / 2, 100);
+
+frame = 0;
+
+fun refresh_callback () {
+    emblem_sprite.SetImage (emblem[Math.Int (frame) % n_frames]);
+    frame += 0.35;
+}
+
+Plymouth.SetRefreshFunction (refresh_callback);
+
+# --- LUKS / message prompt --------------------------------------------------
+# DogOS offers LUKS at install: never leave the user staring at a black screen.
+bullets = "";
+prompt_img = Image.Text ("", 1, 1, 1);
+prompt_sprite = Sprite ();
+prompt_sprite.SetPosition (screen_w / 2, screen_h - 120, 200);
+
+fun message_callback (text) {
+    if (text != "") {
+        # password entry: show bullets, not the passphrase
+        bullets += "*";
+        prompt_img = Image.Text ("Passphrase: " + bullets, 1, 1, 1);
+    } else {
+        prompt_img = Image.Text ("", 1, 1, 1);
+        bullets = "";
+    }
+    prompt_sprite.SetImage (prompt_img);
+    prompt_sprite.SetPosition (screen_w / 2 - prompt_img.GetWidth () / 2,
+                               screen_h - 120, 200);
+}
+
+Plymouth.SetMessageFunction (message_callback);
+
+fun quit_callback () {
+    # Plymouth handles the handoff to the display manager.
+}
+
+Plymouth.SetQuitFunction (quit_callback);

@@ -1,0 +1,12 @@
+# DogOS anonymity layer (spec section 9)
+tor
+torsocks
+proxychains4
+nyx
+onionshare
+i2pd
+obfs4proxy
+dnsutils
+# TODO-verify packaging before build: snowflake-client, yggdrasil, retroshare
+# manual via dogos-extras: feather-wallet, briar-desktop, i2p-bote
+# ahmia + other web services ship in the Firefox bookmark pack (includes.chroot)

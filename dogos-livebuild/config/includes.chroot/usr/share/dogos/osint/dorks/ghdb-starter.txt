@@ -1,0 +1,47 @@
+# DogOS GHDB starter set — classic Google dorks for recon.
+# Use responsibly and only against targets you are authorized to test.
+# Full corpus: https://www.exploit-db.com/google-hacking-database
+
+# --- directory listings ---
+intitle:"index of"
+intitle:"index of /" passwords
+intitle:"index of" "backup"
+
+# --- exposed files ---
+filetype:pdf confidential
+filetype:xls "username" "password"
+filetype:sql "INSERT INTO"
+filetype:log "password"
+filetype:json "api_key"
+ext:env DB_PASSWORD
+
+# --- credentials and keys ---
+"BEGIN RSA PRIVATE KEY"
+"BEGIN OPENSSH PRIVATE KEY"
+intext:"aws_access_key_id"
+
+# --- admin panels and logins ---
+inurl:admin
+inurl:login
+inurl:wp-admin
+intitle:"phpMyAdmin"
+"phpMyAdmin"
+inurl:".git/HEAD"
+inurl:".env"
+
+# --- dashboards and consoles ---
+intitle:"Apache Status"
+intitle:"Tomcat Manager"
+inurl:server-status
+inurl:jupyter
+intitle:"Grafana"
+intitle:"Kibana"
+"Mongo Express" intitle:"Home"
+inurl:"/actuator/health"
+intitle:"Swagger UI"
+inurl:"/api/docs"
+
+# --- cloud and code ---
+site:github.com password
+site:gitlab.com "BEGIN RSA PRIVATE KEY"
+"Elasticsearch" intitle:"cluster health"

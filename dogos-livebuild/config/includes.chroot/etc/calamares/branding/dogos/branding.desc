@@ -1,0 +1,24 @@
+---
+# DogOS Calamares branding. TODO(build): real product/support URLs once
+# DogOS has a site; slideshow QML under slideshow/ .
+componentName:  dogos
+
+welcomeStyleCalamares: false
+windowExpanding: normal
+windowSize: 800px,520px
+windowPlacement: center
+
+productName:         DogOS
+shortProductName:    DogOS
+version:             rolling
+shortVersion:        rolling
+versionedName:       DogOS (rolling)
+shortVersionedName:  DogOS
+
+productUrl:          https://example.com/dogos
+supportUrl:          https://example.com/dogos/support
+knownIssuesUrl:      https://example.com/dogos/issues
+releaseNotesUrl:     https://example.com/dogos/notes
+
+productIconName:     dogos
+productWallpaper:    /usr/share/backgrounds/dogos/dogos-wallpaper.webp

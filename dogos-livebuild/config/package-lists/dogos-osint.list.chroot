@@ -1,0 +1,19 @@
+# DogOS OSINT layer — Debian-packaged tools (spec section 9, full list in osint-toolkit.md)
+# VERIFY names with apt-cache before build; pip-only tools ship via dogos-extras
+# (hash-pinned, vendored wheels — per security review H2).
+theharvester
+recon-ng
+spiderfoot
+sublist3r
+amass
+subfinder
+dnsrecon
+dnsenum
+fierce
+metagoofil
+whois
+libimage-exiftool-perl
+torbrowser-launcher
+# pip/vendored via dogos-extras: holehe, maigret, sherlock, snscrape,
+# instaloader (verify; may be in Debian), shodan, dnstwist (verify)
+# manual via dogos-extras: phoneinfoga, onionscan, photon, ghunt, blackbird

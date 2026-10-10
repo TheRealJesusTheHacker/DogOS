@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=DogOS
+Description=DogOS animated boot splash - pulsing Doberman emblem
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/dogos
+ScriptFile=/usr/share/plymouth/themes/dogos/dogos.script
