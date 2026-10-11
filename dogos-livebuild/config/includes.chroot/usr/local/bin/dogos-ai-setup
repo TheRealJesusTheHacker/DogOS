@@ -8,7 +8,27 @@ MODEL="${DOGOS_AI_MODEL:-qwen2.5-coder:7b}"
 
 if ! command -v ollama >/dev/null 2>&1; then
   echo "Installing Ollama..."
-  curl -fsSL https://ollama.com/install.sh | sh
+  # The official install script runs as ROOT, so it is checksum-verified
+  # against a pinned hash BEFORE execution — never curl|sh blind.
+  # Ollama rotates the script occasionally: if the check fails, download
+  # the new script, REVIEW it by hand, then re-pin with:
+  #   curl -fsSL https://ollama.com/install.sh | sha256sum
+  OLLAMA_INSTALL_URL="https://ollama.com/install.sh"
+  OLLAMA_INSTALL_SHA256="25f64b810b947145095956533e1bdf56eacea2673c55a7e586be4515fc882c9f"  # pinned 2026-10-11
+  installer="$(mktemp /tmp/ollama-install.XXXXXX.sh)"
+  trap 'rm -f "$installer"' EXIT
+  curl -fsSL "$OLLAMA_INSTALL_URL" -o "$installer"
+  got="$(sha256sum "$installer" | awk '{print $1}')"
+  if [ "$got" != "$OLLAMA_INSTALL_SHA256" ]; then
+    echo "ERROR: ollama install script checksum mismatch — NOT executed."
+    echo "  expected: $OLLAMA_INSTALL_SHA256"
+    echo "  got:      $got"
+    echo "Ollama likely rotated the script. Download it, REVIEW it by hand,"
+    echo "then re-pin OLLAMA_INSTALL_SHA256 in this script and re-run."
+    exit 1
+  fi
+  echo "checksum OK — executing installer."
+  sh "$installer"
 fi
 
 echo "Pulling local model: $MODEL"
