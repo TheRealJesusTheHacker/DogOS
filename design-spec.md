@@ -81,7 +81,7 @@ _What is this OS for? Who is it for? What does it do better than anything else?_
 - **Update mechanism:** rolling via APT (`dist-upgrade`); periodic snapshot ISOs
 - **Release integrity:** GPG-signed ISOs + checksums, fingerprint published out-of-band; offline master signing key — set 2026-10-10 per security review
 - **Flavors (decided 2026-10-10):** `dogos-full` — kitchen sink, ~14.9 GB installed package set (2,625 packages, recursive Depends) → roughly a **10–11 GB ISO**; for installed/VM use. `dogos-lite` — kali-tools-top10 + the DogOS OSINT/anonymity/AI layers (which ship in both), ~5.3 GB → roughly a **4–5 GB ISO**; live-USB friendly. Built via `build.sh [full|lite]`, which overlays `flavors/lite/` onto the tree (measured 2026-10-10 against live archive indices).
-- **First native package:** dogos-scripts 0.1.0 `.deb` built 2026-10-10 (engage/ghost/ai-setup) — in `dogos-extras/staging/`.
+- **First native package:** dogos-scripts 0.2.0 `.deb` built 2026-10-10 (engage/ghost/ai-setup/leaktest/hostname) — in `dogos-extras/staging/`.
 - **CI:** weekly automated build + boot smoke test (bit-rot defense for rolling + kitchen sink) — set 2026-10-10 per security review
 
 ## Open questions
