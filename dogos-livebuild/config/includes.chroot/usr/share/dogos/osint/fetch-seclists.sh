@@ -16,6 +16,11 @@ mkdir -p "$DEST"
 archive="$(mktemp /tmp/seclists.XXXXXX.tar.gz)"
 trap 'rm -f "$archive"' EXIT
 curl -fsSL "$URL" -o "$archive"
+# A truncated stream can still exit curl 0; never extract into $DEST
+# before the archive proves itself intact (else a partial corpus merges
+# with the old one and looks complete).
+echo "verifying archive integrity ..."
+tar -tzf "$archive" >/dev/null || { echo "ERROR: archive is truncated/corrupt — NOT extracted."; exit 1; }
 tar -xz -f "$archive" -C "$DEST" --strip-components=1
 echo "done. Corpus lives in $DEST (Discovery/, Usernames/, Passwords/, ...)"
 echo "Starter lists remain alongside it; point your tools at either."
