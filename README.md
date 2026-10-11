@@ -1,13 +1,13 @@
-# 💎 JadeOS
-
 [![CI](https://github.com/TheRealJesusTheHacker/DogOS/actions/workflows/ci.yml/badge.svg)](https://github.com/TheRealJesusTheHacker/DogOS/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+# DogOS
+
 **"All Dogs Go To Heaven."**
 
-## What JadeOS is
+## What DogOS is
 
-JadeOS is a security and penetration-testing Linux distribution, built from
+DogOS is a security and penetration-testing Linux distribution, built from
 scratch on Debian and designed as a complete working environment for offensive
 security. It is a rolling distribution in the Kali tradition: a Debian testing
 base (codename `forky` at time of writing) with the Kali archive wired in
@@ -15,17 +15,17 @@ base (codename `forky` at time of writing) with the Kali archive wired in
 the toolset stays current instead of freezing on a point release.
 
 The desktop is MATE on X11 with LightDM — chosen for maximum compatibility
-with pentest tooling rather than visual novelty. JadeOS ships two flavors from
+with pentest tooling rather than visual novelty. DogOS ships two flavors from
 one live-build tree: **full**, a kitchen-sink ~10–11 GB ISO with every Kali
 metapackage for installed/VM use, and **lite**, a ~4–5 GB live-USB-friendly
-ISO that still carries the complete JadeOS recon layers (OSINT, anonymity,
+ISO that still carries the complete DogOS recon layers (OSINT, anonymity,
 AI). Both flavors are assembled by `dogos-livebuild/build.sh`, which
 overlays `flavors/lite/` onto the base config tree.
 
-What makes JadeOS distinct from a stock Kali or Parrot is the layer around the
+What makes DogOS distinct from a stock Kali or Parrot is the layer around the
 tools:
 
-- **JadeOS-native helper CLI** (`dogos-engage`, `dogos-ghost`, `dogos-ai-setup`,
+- **DogOS-native helper CLI** (`dogos-engage`, `dogos-ghost`, `dogos-ai-setup`,
   `dogos-leaktest`, `dogos-hostname`) — shipped as the `dogos-scripts` Debian
   package (0.2.0), making opsec workflows like Tor transparent-routing and
   firewall exceptions one command instead of a checklist.
@@ -59,7 +59,7 @@ OSINT resource inventory. Release codenames are dog breeds, starting with
 - Students learning offensive security on a rolling, Debian-familiar base.
 - The Cyberdogs — this is the pack's home distro.
 
-**Legal note:** JadeOS is an *attack* distro. Use its tooling only on systems
+**Legal note:** DogOS is an *attack* distro. Use its tooling only on systems
 you own or are explicitly authorized to test — never without a signed
 authorization in place. The maintainers are not responsible for misuse.
 
@@ -70,7 +70,7 @@ authorization in place. The maintainers are not responsible for misuse.
 | Target | Installed systems, VMs | Live USB, quick recon |
 | ISO size | ~10–11 GB | ~4–5 GB |
 | Pentest set | All 15 Kali metapackages + verified additions | `kali-tools-top10` + verified additions |
-| JadeOS layers (OSINT / anonymity / AI) | ✅ | ✅ |
+| DogOS layers (OSINT / anonymity / AI) | ✅ | ✅ |
 | Dev + applications layer | ✅ | — (intentionally empty override) |
 
 Both flavors share the identity, hardening, amnesiac, and installer stack.
@@ -154,7 +154,7 @@ the results mean with Ghost on vs. off — no theater.
 
 ### Amnesiac live mode
 
-- **Boot-menu entry "JadeOS amnesiac (RAM only)"** — a binary-stage build
+- **Boot-menu entry "DogOS amnesiac (RAM only)"** — a binary-stage build
   hook clones the default syslinux/GRUB live entries and adds `toram`, so the
   whole system runs from RAM and nothing is written to host disks. The hook
   is defensive: it probes each bootloader layout and skips with a warning
@@ -195,9 +195,9 @@ the results mean with Ghost on vs. off — no theater.
 - A pentest-copilot system-prompt pack (prebuilt personas for recon,
   exploitation, reporting) is on the roadmap.
 
-### JadeOS helper scripts (`dogos-scripts` 0.2.0)
+### DogOS helper scripts (`dogos-scripts` 0.2.0)
 
-The first native JadeOS package, shipped in `dogos-extras/staging/` and
+The first native DogOS package, shipped in `dogos-extras/staging/` and
 installable with `sudo dpkg -i dogos-scripts_0.2.0_all.deb`:
 
 | Script | What it does |
@@ -214,7 +214,7 @@ systems, not live media, so it isn't part of the `dogos-scripts` .deb.)
 
 ### Installer and branding
 
-- Graphical Calamares installer with JadeOS branding
+- Graphical Calamares installer with DogOS branding
 - First-boot cleanup on installed systems: `dogos-install-cleanup` runs once
   (before the login screen) to remove the live-session user, its
   passwordless-sudo grant, and the live autologin config — installed systems
@@ -328,7 +328,7 @@ Planned (roadmap, not yet implemented):
 
 ## Security
 
-JadeOS is an *attack* distro — it assumes the operator is the trusted party
+DogOS is an *attack* distro — it assumes the operator is the trusted party
 working from potentially hostile networks. It protects operator anonymity
 (Ghost mode, amnesiac live boot), data at rest (LUKS), and toolkit integrity
 (signed repos, checksummed ISOs). It does **not** claim to defend against
@@ -361,8 +361,8 @@ Business inquiries: **Sentinelsafeguard@outlook.com**
 
 ## Third-party software
 
-JadeOS is built from and with open-source projects — their own licenses
-apply to their work; JadeOS's own code is MIT (see below). Highlights:
+DogOS is built from and with open-source projects — their own licenses
+apply to their work; DogOS's own code is MIT (see below). Highlights:
 
 - **Kali Linux** — the Kali archive (`kali-rolling`) supplies the pentest
   toolset; keyring fingerprints verified against Kali's published values
@@ -372,7 +372,7 @@ apply to their work; JadeOS's own code is MIT (see below). Highlights:
 - **Calamares** — graphical system installer (GPL-3.0).
   https://calamares.io
 - **SecLists** — on-demand wordlist corpus, fetched at a pinned commit
-  (MIT); the starter lists in-tree are JadeOS-curated.
+  (MIT); the starter lists in-tree are DogOS-curated.
   https://github.com/danielmiessler/SecLists
 - **Exploit-DB GHDB** — the dork patterns in the in-tree starter set are
   modeled on this corpus. https://www.exploit-db.com/google-hacking-database
