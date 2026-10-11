@@ -1,6 +1,8 @@
 ---
-# DogOS Calamares branding. TODO(build): real product/support URLs once
-# DogOS has a site; slideshow QML under slideshow/ .
+# DogOS Calamares branding. TODO(site): point product/support URLs at the
+# DogOS site once it exists; for now the repo is the canonical home.
+# Slideshow: none yet — Calamares falls back to the default slides when no
+# slideshow/ dir is referenced (planned, see README roadmap).
 componentName:  dogos
 
 welcomeStyleCalamares: false
@@ -15,10 +17,10 @@ shortVersion:        rolling
 versionedName:       DogOS (rolling)
 shortVersionedName:  DogOS
 
-productUrl:          https://example.com/dogos
-supportUrl:          https://example.com/dogos/support
-knownIssuesUrl:      https://example.com/dogos/issues
-releaseNotesUrl:     https://example.com/dogos/notes
+productUrl:          https://github.com/TheRealJesusTheHacker/DogOS
+supportUrl:          https://github.com/TheRealJesusTheHacker/DogOS/issues
+knownIssuesUrl:      https://github.com/TheRealJesusTheHacker/DogOS/issues
+releaseNotesUrl:     https://github.com/TheRealJesusTheHacker/DogOS/releases
 
 productIconName:     dogos
 productWallpaper:    /usr/share/backgrounds/dogos/dogos-wallpaper.webp

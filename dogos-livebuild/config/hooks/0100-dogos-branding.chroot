@@ -17,9 +17,9 @@ if command -v plymouth-set-default-theme >/dev/null 2>&1; then
   plymouth-set-default-theme -R dogos || plymouth-set-default-theme dogos || true
 fi
 
-# Calamares: use DogOS branding
+# Calamares: use DogOS branding (tolerant of indented/commented variants)
 if [ -f /etc/calamares/settings.conf ]; then
-  sed -i 's/^branding:.*/branding: dogos/' /etc/calamares/settings.conf || true
+  sed -i 's/^[[:space:]]*branding:.*/branding: dogos/' /etc/calamares/settings.conf || true
 fi
 
 echo "dogos branding hook done"
