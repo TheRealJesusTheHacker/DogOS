@@ -1,56 +1,352 @@
+[![CI](https://github.com/TheRealJesusTheHacker/DogOS/actions/workflows/ci.yml/badge.svg)](https://github.com/TheRealJesusTheHacker/DogOS/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 # DogOS
 
 **"All Dogs Go To Heaven."**
 
+## What DogOS is
+
 DogOS is a security and penetration-testing Linux distribution, built from
-scratch on Debian testing with a Kali-style rolling toolset. MATE on X11 for
-maximum tool compatibility. Two flavors: kitchen-sink `full` and live-USB
-friendly `lite`.
+scratch on Debian and designed as a complete working environment for offensive
+security. It is a rolling distribution in the Kali tradition: a Debian testing
+base (codename `forky` at time of writing) with the Kali archive wired in
+(kali-rolling, fingerprints verified against Kali's published key values), so
+the toolset stays current instead of freezing on a point release.
 
-## Highlights
+The desktop is MATE on X11 with LightDM — chosen for maximum compatibility
+with pentest tooling rather than visual novelty. DogOS ships two flavors from
+one live-build tree: **full**, a kitchen-sink ~10–11 GB ISO with every Kali
+metapackage for installed/VM use, and **lite**, a ~4–5 GB live-USB-friendly
+ISO that still carries the complete DogOS recon layers (OSINT, anonymity,
+AI). Both flavors are assembled by `dogos-livebuild/build.sh`, which
+overlays `flavors/lite/` onto the base config tree.
 
-- **Pentest toolkit** — Kali metapackages (top10 for lite, everything for full)
-  plus DogOS layers: OSINT, anonymity, AI, dark-web
-- **Anonymity** — Tor, I2P, `dogos-ghost` (transparent/per-app routing,
-  killswitch, captive-portal hatch), `dogos-leaktest` verification
-- **Amnesiac live mode** — Tails-style: RAM-only `toram` boot option, always-on
-  MAC randomization, randomized hostname on live boot
-- **Hardened defaults** — AppArmor, Bubblewrap, nftables default-deny incoming,
-  no listening services, password-required sudo, LUKS via installer
-- **Local AI** — Ollama/llama.cpp by default; cloud APIs strictly opt-in
-- **OSINT toolkit** — installable tools, 30-service browser bookmark pack,
-  wordlists, GHDB dork starters, SecLists fetcher
-- **Installer** — graphical Calamares with DogOS branding
+What makes DogOS distinct from a stock Kali or Parrot is the layer around the
+tools:
 
-## Repo layout
+- **DogOS-native helper CLI** (`dogos-engage`, `dogos-ghost`, `dogos-ai-setup`,
+  `dogos-leaktest`, `dogos-hostname`) — shipped as the `dogos-scripts` Debian
+  package (0.2.0), making opsec workflows like Tor transparent-routing and
+  firewall exceptions one command instead of a checklist.
+- **Anonymity as a first-class feature** — Ghost mode (one-click transparent
+  Tor routing with killswitch), a captive-portal escape hatch for hostile
+  networks, and an honest leak-verification tool that reports what it finds
+  rather than what you want to hear.
+- **Amnesiac live mode, Tails-style** — a dedicated boot-menu entry runs the
+  whole system from RAM (`toram`), MAC addresses randomize on every boot
+  (live or installed), and live sessions get a fresh random hostname.
+- **Hardened by default, firewall stays on** — nftables default-deny incoming,
+  AppArmor, Bubblewrap, no listening services, Bluetooth off, LUKS offered in
+  the installer. During engagements you open *explicit, visible* exceptions
+  with `dogos-engage` instead of disabling the firewall.
+- **Local-AI privacy default** — llama.cpp ships in the image; Ollama and a
+  default model install on demand via `dogos-ai-setup`. Cloud APIs are
+  strictly opt-in — engagement data never leaves the machine unless you say so.
 
-- `design-spec.md` — living design document (decisions, architecture)
-- `security-review-2026-10-10.md` — adversarial review, folded into the spec
-- `osint-toolkit.md` — full OSINT resource inventory
-- `dogos-livebuild/` — live-build config tree (package lists, hooks, includes,
-  `build.sh` for the `full`/`lite` flavors)
-- `dogos-extras/` — small signed APT repo scaffold for DogOS-native packages
-  (`dogos-scripts`: engage/ghost/ai-setup/leaktest/hostname helpers)
-- `assets/` — branding (wallpaper, logo references)
+The project is designed in the open: `design-spec.md` is the living design
+document, `security-review-2026-10-10.md` records the adversarial review whose
+findings were folded back into the build, and `osint-toolkit.md` is the full
+OSINT resource inventory. Release codenames are dog breeds, starting with
+**Doberman** (v0.1.0).
 
-## Building
+## Who it's for
 
-Needs a Debian host with `live-build` 3.x, ~20 GB free disk, root:
+- Penetration testers and red teams who want an attack distro with anonymity
+  and opsec helpers baked in, not bolted on.
+- Security researchers and OSINT investigators who need a stocked recon
+  environment on a live USB.
+- Students learning offensive security on a rolling, Debian-familiar base.
+- The Cyberdogs — this is the pack's home distro.
+
+**Legal note:** DogOS is an *attack* distro. Use its tooling only on systems
+you own or are explicitly authorized to test — never without a signed
+authorization in place. The maintainers are not responsible for misuse.
+
+## Flavors
+
+| | `dogos-full` | `dogos-lite` |
+|---|---|---|
+| Target | Installed systems, VMs | Live USB, quick recon |
+| ISO size | ~10–11 GB | ~4–5 GB |
+| Pentest set | All 14 Kali metapackages + verified additions | `kali-tools-top10` + verified additions |
+| DogOS layers (OSINT / anonymity / AI) | ✅ | ✅ |
+| Dev + applications layer | ✅ | — (intentionally empty override) |
+
+Both flavors share the identity, hardening, amnesiac, and installer stack.
+Flavors work by overlay: `build.sh` copies the tree to `/tmp/dogos-build-<flavor>/`
+and overlays `flavors/lite/` for lite — any file placed under
+`flavors/lite/config/` replaces the same path under `config/`.
+
+## Feature rundown
+
+### Pentest toolkit
+
+- **Full flavor:** all fifteen Kali metapackages (`kali-tools-top10`,
+  `-information-gathering`, `-vulnerability`, `-web`, `-database`,
+  `-passwords`, `-wireless`, `-reverse-engineering`, `-exploitation`,
+  `-sniffing-spoofing`, `-post-exploitation`, `-forensics`, `-reporting`,
+  `-crypto-stego`, `-hardware`) plus verified additions from the live
+  Debian/Kali archives: `ffuf`, `gobuster`, `chisel`, `bloodhound`,
+  `hcxtools`, `hcxdumptool`, `ghidra`, `valgrind`, `slowloris`.
+- **Lite flavor:** `kali-tools-top10` plus the lean verified additions
+  (`ffuf`, `gobuster`, `chisel`, `hcxtools`, `hcxdumptool`, `slowloris`,
+  `beef-xss`). Bloodhound and Ghidra stay full-only deliberately — their
+  ~1.3 GB would break lite's live-USB budget.
+
+### OSINT mega-pack
+
+Installable tools (`theharvester`, `recon-ng`, `spiderfoot`, `sublist3r`,
+`amass`, `subfinder`, `dnsrecon`, `dnsenum`, `fierce`, `metagoofil`,
+`whois`, `exiftool`, `torbrowser-launcher`, `dnstwist`, `instaloader`,
+`sherlock`, `photon`, `finalrecon`) plus a resource directory at
+`/usr/share/dogos/osint/`:
+
+- `bookmarks.html` — 30-service Firefox bookmark pack (import via
+  Bookmarks → Manage → Import)
+- `wordlists/subdomains-starter.txt` (~170 entries),
+  `wordlists/usernames-common.txt` (~90 entries)
+- `dorks/ghdb-starter.txt` — ~40 classic Google Hacking Database dorks
+- `keys.env.template` — API-key template for 14 services (Shodan, Censys,
+  VirusTotal, AbuseIPDB, urlscan, SecurityTrails, Hunter, Dehashed,
+  Intelligence X, Wigle, and more); copy to `~/.config/dogos/osint/keys.env`
+- `fetch-seclists.sh` — pulls the full SecLists corpus on demand so the
+  ISO stays lean while starter lists ship regardless
+
+A dedicated OSINT category ships in the MATE menu.
+
+### Anonymity and Ghost mode
+
+Packages: `tor`, `torsocks`, `proxychains4`, `nyx`, `onionshare`, `i2pd`,
+`obfs4proxy`, `dnscrypt-proxy`, `privoxy`.
+
+`dogos-ghost` implements AnonSurf-style transparent Tor routing:
+
+```
+dogos-ghost on       # route all TCP/DNS through Tor (with killswitch)
+dogos-ghost off      # back to direct traffic
+dogos-ghost portal   # 5-minute captive-portal hatch for hotel/cafe logins
+dogos-ghost status   # is Ghost mode on? is tor running?
+dogos-ghost per-app  # per-app routing cheat sheet (torsocks, proxychains4)
+```
+
+Mechanism: an nftables `nat` table redirects TCP → Tor's TransPort (9040)
+and DNS → Tor's DNSPort (5353), with Tor's own traffic excluded by UID so it
+can't loop back into itself. The script refuses to enable if the TransPort
+isn't listening after 30 seconds — your network is left untouched rather
+than half-configured.
+
+**Honest limits, stated up front:** Ghost mode is scoped to the
+recon/anonymity phase. Non-DNS UDP and ICMP bypass Tor entirely; many targets
+block Tor exits; latency kills interactive shells. Run `dogos-leaktest`
+after enabling:
+
+```
+dogos-leaktest   # Tor check via check.torproject.org + DNS egress check
+```
+
+It reports `IsTor` and which resolver IP outsiders see, and tells you what
+the results mean with Ghost on vs. off — no theater.
+
+### Amnesiac live mode
+
+- **Boot-menu entry "DogOS amnesiac (RAM only)"** — a binary-stage build
+  hook clones the default syslinux/GRUB live entries and adds `toram`, so the
+  whole system runs from RAM and nothing is written to host disks. The hook
+  is defensive: it probes each bootloader layout and skips with a warning
+  when a path is unrecognized.
+- **MAC randomization, always on** — NetworkManager config randomizes Wi-Fi
+  scan MACs and both Ethernet/Wi-Fi connection MACs on *every* boot, live or
+  installed.
+- **Random hostname on live boot** — the `dogos-hostname` systemd service
+  sets a fresh identity (`dogos-hound-4821`, `dogos-shadow-7390`, …) only
+  when booted from live media; installed systems keep their configured name.
+
+### Hardening defaults
+
+- nftables default-deny incoming (base ruleset ships in the image; the
+  service is enabled at build time)
+- AppArmor with profiles and utils; Bubblewrap installed
+- Bluetooth disabled by default (one click to re-enable); `avahi-daemon`,
+  `cups`, `rpcbind`, and `nfs-client.target` masked — no listening services
+  out of the box
+- Sudo requires the user password (no NOPASSWD); LUKS full-disk encryption
+  offered in the installer
+- Hardening sysctls (`99-dogos.conf`)
+
+### Local AI
+
+- `llama.cpp` ships in the image
+- `dogos-ai-setup` installs Ollama (official install script) if missing and
+  pulls the default local model (`qwen2.5-coder:7b`, override with
+  `DOGOS_AI_MODEL=…`). Model weights are **never** baked into the ISO.
+- **Privacy default: local models only.** Cloud-backed assistants
+  (Shell-GPT, aichat) ship via `dogos-extras` as hash-pinned vendored wheels
+  and require explicit opt-in — engagement data never leaves the machine
+  unless you say so.
+- A pentest-copilot system-prompt pack (prebuilt personas for recon,
+  exploitation, reporting) is on the roadmap.
+
+### DogOS helper scripts (`dogos-scripts` 0.2.0)
+
+The first native DogOS package, shipped in `dogos-extras/staging/` and
+installable with `sudo dpkg -i dogos-scripts_0.2.0_all.deb`:
+
+| Script | What it does |
+|---|---|
+| `dogos-engage` | Explicit firewall exceptions for engagements: `open <ports…>` / `close` / `status` operate on an idempotent `engage_ports` nftables set (close never disturbs Ghost mode); `route on|off` toggles IP forwarding for MITM/pivot work |
+| `dogos-ghost` | One-click transparent Tor routing (see above) |
+| `dogos-ai-setup` | Install Ollama + pull the default local model |
+| `dogos-leaktest` | Verify Ghost mode isn't leaking |
+| `dogos-hostname` | Randomize hostname on live boot |
+
+All five are syntax-checked and shellcheck-clean in CI.
+
+### Installer and branding
+
+- Graphical Calamares installer with DogOS branding
+- Animated Plymouth boot splash (8-frame pulsing Doberman theme)
+- Dark hacker wallpaper set as the MATE default via dconf
+- ISO publisher: Sentinel Safeguard LLC
+
+### `dogos-extras` — the signed APT repo
+
+`dogos-extras/` is a small signed APT repository scaffold (reprepro-based)
+for everything Debian doesn't ship:
+
+- **Packaged:** `dogos-scripts` 0.2.0 (engage/ghost/ai-setup/leaktest/hostname)
+- **Queued (pip → vendored, hash-pinned):** holehe, maigret, snscrape,
+  shodan, social-analyzer, toutatis, whisper
+- **Queued (manual builds):** phoneinfoga, onionsearch, blackbird, ghunt,
+  ligolo, cutter
+- **Queued (upstream debs, mirrored + verified):** feather-wallet,
+  yggdrasil, retroshare, gh (GitHub CLI), android-tools-adb/fastboot, bless
+- **Rejected after audit (2026-10-10):** LOIC — no maintained port exists;
+  modern stress tools (slowloris, hping3) cover the capability
+
+`scripts/import-deb.sh` imports packages, `scripts/export-key.sh` publishes
+the repo key. The signing-key ID and repo URL are intentionally left as TODO:
+Skyler generates the offline master key on an air-gapped machine first, and
+no placeholder source is added to the image before then — a dead `URIs:`
+entry would break `apt update` on every boot.
+
+## How the pieces fit together
+
+```
+design-spec.md            living design document — decisions, architecture
+security-review-*.md      adversarial review (findings folded into the spec)
+osint-toolkit.md          full OSINT resource inventory
+dogos-livebuild/          the live-build config tree
+  auto/config             live-build entrypoint (lb config, 3.x CLI)
+  config/package-lists/   APT layers: desktop, pentest, osint, anonymity,
+                          ai, hardening, firmware, dev (full-only)
+  config/archives/        Kali archive source + verified keyring
+  config/hooks/           build hooks: branding, hardening, scripts,
+                          amnesiac toram boot entry
+  config/includes.chroot/ files overlaid into the live system
+                          (dogos-* helpers, nftables rules, sysctls,
+                          wallpaper, Plymouth theme, Calamares branding,
+                          OSINT resource dir)
+  flavors/lite/           overlay that trims the tree for the lite ISO
+  build.sh                assembles a flavor, runs auto/config
+dogos-extras/             signed APT repo scaffold + first native package
+assets/                   branding (wallpaper, logo references)
+```
+
+A build flows: `build.sh [full|lite]` → assemble tree → `./auto/config` →
+`sudo lb build` → rename `live-image-*.iso`. Build hooks fire inside the
+chroot (branding, hardening) and at the binary stage (amnesiac boot entry);
+everything under `includes.chroot/` lands in the live filesystem verbatim.
+
+## Building from source
+
+**Honest requirements:** a full `lb build` is heavy — use real hardware (a
+Debian host with live-build 3.x, ~25 GB free disk for `full`, root access).
+CI only syntax-checks and lints the scripts; nobody's building a 10 GB ISO
+in a free CI runner.
 
 ```sh
-cd dogos-livebuild
-./build.sh lite     # or ./build.sh full
-cd /tmp/dogos-build-lite && sudo lb build
+# Debian build host
+sudo apt install live-build
+
+git clone https://github.com/TheRealJesusTheHacker/DogOS.git
+cd DogOS/dogos-livebuild
+
+./build.sh lite     # or ./build.sh full (default)
+cd /tmp/dogos-build-lite
+sudo lb build
+
+# live-build 3.x dropped --image-name; rename the output
 mv live-image-*.iso dogos-lite.iso
 ```
 
-See `dogos-livebuild/README.md` for live-build 3.x notes (hook layout,
-`noauto`, bootloader).
+Before building, verify the Debian testing codename in `auto/config`
+(`forky` at time of writing) and every package name with
+`apt-cache policy` — the lists were verified against the live Debian/Kali
+archives on 2026-10-10, but a rolling base moves.
 
-## Status
+See `dogos-livebuild/README.md` for live-build 3.x notes (flat hook layout,
+`noauto` first, singular `--bootloader`).
 
-Design-complete and scaffold-validated (`lb config` passes against live-build
-3.x). No release ISO yet — first build targets real hardware. Release
-codenames: dog breeds, starting with **Doberman**.
+## Status and roadmap
 
-Built by Cyberdogs 
+- **v0.1.0 "Doberman" (2026-10-11)** — first public prerelease: complete
+  project source, live-build tree (full + lite), `dogos-extras` scaffold,
+  design spec, security review, OSINT inventory. No ISO attached yet.
+- **Design-complete, scaffold-validated** — `lb config` passes against
+  live-build 3.x; package lists verified against Debian forky/Kali rolling.
+- **No bootable ISO yet** — the first ISO build targets real hardware.
+
+Planned (roadmap, not yet implemented):
+
+- First bootable ISO (full + lite), GPG-signed with checksums and a
+  fingerprint published out-of-band
+- Weekly automated build + boot smoke test (bit-rot defense for a rolling
+  base)
+- `dogos-extras` going live: offline master signing key, repo URL, client
+  apt config in the image, queued packages vendored in
+- Firefox Bubblewrap sandbox wrapper
+- Pentest-copilot system-prompt pack
+- Live-boot credentials documented loudly (or randomized per boot);
+  installer forces a real password
+- Periodic snapshot ISOs; rolling updates via APT `dist-upgrade`
+
+## Security
+
+DogOS is an *attack* distro — it assumes the operator is the trusted party
+working from potentially hostile networks. It protects operator anonymity
+(Ghost mode, amnesiac live boot), data at rest (LUKS), and toolkit integrity
+(signed repos, checksummed ISOs). It does **not** claim to defend against
+physical seizure of an unlocked machine, operator OPSEC failures, or targeted
+endpoint compromise by a well-resourced adversary. It is not Qubes — its job
+is keeping the operator safe while they work.
+
+To report a security issue, see [SECURITY.md](SECURITY.md) — reports go to
+Sentinelsafeguard@outlook.com. Please do not open public issues for
+vulnerabilities.
+
+## Contributing
+
+Pull requests are welcome. Two house rules:
+
+1. **Intended functionality comes first.** Fix issues around the features
+   described here — never strip or neuter a feature to satisfy a linter or
+   scanner. If a finding can't be fixed without breaking intended behavior,
+   document why and leave it.
+2. **Don't change script interfaces** — the `dogos-*` CLI contracts are
+   stable. CI runs `bash -n` and shellcheck over every shell script; keep
+   them clean.
+
+See the [pull request template](.github/PULL_REQUEST_TEMPLATE.md) for the
+checklist.
+
+## Contact
+
+Business inquiries: **Sentinelsafeguard@outlook.com**
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+---
+*Built by Cyberdogs 🐾*
