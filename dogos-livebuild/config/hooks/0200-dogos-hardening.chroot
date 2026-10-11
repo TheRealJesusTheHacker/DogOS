@@ -24,4 +24,9 @@ mkdir -p /etc/dogos/sandbox
 # Amnesiac identity: randomize hostname on live boot, randomize MACs always
 systemctl enable dogos-hostname || true
 
+# First-boot cleanup: strip live-session residue (live user, its NOPASSWD
+# grant, live autologin) from Calamares-installed systems before the login
+# screen. Exits quietly on live media.
+systemctl enable dogos-install-cleanup || true
+
 echo "dogos hardening hook done"

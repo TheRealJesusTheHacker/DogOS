@@ -174,8 +174,10 @@ the results mean with Ghost on vs. off — no theater.
 - Bluetooth disabled by default (one click to re-enable); `avahi-daemon`,
   `cups`, `rpcbind`, and `nfs-client.target` masked — no listening services
   out of the box
-- Sudo requires the user password (no NOPASSWD); LUKS full-disk encryption
-  offered in the installer
+- Sudo requires the user password (no NOPASSWD) on installed systems; LUKS
+  full-disk encryption offered in the installer. Live sessions use the
+  standard Debian live user (`user`) with passwordless sudo — expected on
+  live media, stripped from installed systems by `dogos-install-cleanup`.
 - Hardening sysctls (`99-dogos.conf`)
 
 ### Local AI
@@ -206,11 +208,17 @@ installable with `sudo dpkg -i dogos-scripts_0.2.0_all.deb`:
 | `dogos-leaktest` | Verify Ghost mode isn't leaking |
 | `dogos-hostname` | Randomize hostname on live boot |
 
-All five are syntax-checked and shellcheck-clean in CI.
+All five are syntax-checked and shellcheck-clean in CI. (`dogos-install-cleanup`
+ships separately in the ISO via `includes.chroot` — it runs on installed
+systems, not live media, so it isn't part of the `dogos-scripts` .deb.)
 
 ### Installer and branding
 
 - Graphical Calamares installer with DogOS branding
+- First-boot cleanup on installed systems: `dogos-install-cleanup` runs once
+  (before the login screen) to remove the live-session user, its
+  passwordless-sudo grant, and the live autologin config — installed systems
+  boot to a real login for the user created in the installer
 - Animated Plymouth boot splash (8-frame pulsing Doberman theme)
 - Dark hacker wallpaper set as the MATE default via dconf
 - ISO publisher: Sentinel Safeguard LLC

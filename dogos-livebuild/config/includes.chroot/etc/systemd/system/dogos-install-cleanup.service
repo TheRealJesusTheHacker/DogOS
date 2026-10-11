@@ -1,0 +1,14 @@
+[Unit]
+Description=DogOS first-boot cleanup of live-session residue (installed systems)
+# Runs before the display manager so the live-user autologin is gone before
+# any login screen appears. The script itself exits quietly on live media.
+Before=display-manager.service
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/dogos-install-cleanup
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

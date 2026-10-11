@@ -1,0 +1,72 @@
+#!/bin/bash
+# dogos-install-cleanup — first-boot cleanup of live-session residue on
+# INSTALLED systems.
+#
+# Calamares installs by copying the running live session, which drags along
+# live-config's runtime artifacts: the live user (e.g. `user`), its
+# passwordless-sudo grant (/etc/sudoers.d/live), and the LightDM autologin
+# config live-config wrote at live boot. Without this cleanup an installed
+# system would boot straight into a passwordless-sudo live account.
+#
+# Runs once via dogos-install-cleanup.service (Before=display-manager, so it
+# finishes before the login screen), then disables itself. Exits quietly on
+# live media. Idempotent: re-runs are no-ops via the marker file.
+set -euo pipefail
+[ "$(id -u)" -eq 0 ] || { echo "error: run as root"; exit 1; }
+
+MARKER="/var/lib/dogos/install-cleanup.done"
+LIVE_USER="${DOGOS_LIVE_USER:-user}"
+
+# Live media: nothing to clean up.
+if [ -e /run/live/medium ] || [ -e /lib/live/mount/medium ]; then
+  exit 0
+fi
+[ -e "$MARKER" ] && exit 0
+
+# Safety: never remove the live user unless a REAL (Calamares-created) login
+# user exists — otherwise the installed system would have no one to log in as.
+real_user=0
+while IFS=: read -r name _ uid _ _ _ shell; do
+  [ "$name" = "$LIVE_USER" ] && continue
+  [ "$name" = "root" ] && continue
+  case "$uid" in ''|*[!0-9]*) continue;; esac
+  [ "$uid" -ge 1000 ] || continue
+  case "$shell" in */false|*/nologin) continue;; esac
+  real_user=1; break
+done < /etc/passwd
+
+if [ "$real_user" -eq 0 ]; then
+  echo "dogos-install-cleanup: no non-live login user found — leaving live residue in place"
+  exit 0
+fi
+
+# 1. Passwordless-sudo grant live-config wrote for the live user.
+rm -f /etc/sudoers.d/live
+
+# 2. LightDM autologin of the live user (live-config wrote this at live boot;
+#    Calamares copies /etc into the target). Only the live user's lines go —
+#    an admin's own autologin-user=<someone-else> is left untouched.
+autologin_re="^[[:space:]]*autologin-user[[:space:]]*=[[:space:]]*${LIVE_USER}([[:space:]]*(#.*)?)?$"
+if [ -f /etc/lightdm/lightdm.conf ]; then
+  sed -i -E "/${autologin_re}/d" /etc/lightdm/lightdm.conf
+fi
+for f in /etc/lightdm/lightdm.conf.d/*.conf; do
+  [ -e "$f" ] || continue
+  if grep -Eq "$autologin_re" "$f"; then
+    sed -i -E "/${autologin_re}/d" "$f"
+    # drop the file if nothing meaningful is left
+    grep -Eqv '^[[:space:]]*(#|$)' "$f" || rm -f "$f"
+  fi
+done
+
+# 3. The live user itself.
+if id "$LIVE_USER" >/dev/null 2>&1; then
+  pkill -u "$LIVE_USER" 2>/dev/null || true
+  userdel -r "$LIVE_USER" 2>/dev/null || userdel "$LIVE_USER" || true
+  echo "dogos-install-cleanup: removed live user '$LIVE_USER'"
+fi
+
+mkdir -p /var/lib/dogos
+touch "$MARKER"
+systemctl disable dogos-install-cleanup.service >/dev/null 2>&1 || true
+echo "dogos-install-cleanup: done"
