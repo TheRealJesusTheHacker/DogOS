@@ -177,7 +177,9 @@ the results mean with Ghost on vs. off — no theater.
 ### Local AI
 
 - `llama.cpp` ships in the image
-- `dogos-ai-setup` installs Ollama (official install script) if missing and
+- `dogos-ai-setup` installs Ollama (official install script, SHA256-verified
+  against a pinned hash before it runs as root — fail-closed if Ollama
+  rotates the script) if missing and
   pulls the default local model (`qwen2.5-coder:7b`, override with
   `DOGOS_AI_MODEL=…`). Model weights are **never** baked into the ISO.
 - **Privacy default: local models only.** Cloud-backed assistants
