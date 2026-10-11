@@ -38,7 +38,7 @@ Scaffold for building the DogOS live ISO. Maps 1:1 to `../design-spec.md`.
    (see `config/archives/README.md`)
 2. Verify every package name with `apt-cache policy` (lists were written from
    the design spec, not from a live archive query)
-3. `dogos-extras` repo: scaffold + first package (dogos-scripts 0.1.0) done —
+3. `dogos-extras` repo: scaffold + first package (dogos-scripts 0.2.0) done —
    LOIC rejected post-audit; now: repackaged pip tools (hash-pinned, vendored
    wheels), modern stress-tool candidates (T50, slowloris, Anevicon)
 4. DONE (2026-10-10): Plymouth animated splash — 8 pulsing Doberman frames +
