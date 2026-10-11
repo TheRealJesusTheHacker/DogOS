@@ -1,0 +1,50 @@
+name: CI
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# NOTE: this CI deliberately does NOT run `lb build`. A full live-build is a
+# multi-hour, ~25 GB job on rolling Debian testing — it needs real hardware
+# (see README "Building from source"). The gate here is: every shell script
+# must parse (bash -n) and pass shellcheck. That is the pre-merge bar.
+
+jobs:
+  shell:
+    name: Shell syntax + lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+
+      - name: Find shell scripts
+        run: |
+          set -euo pipefail
+          grep -rlE --exclude-dir=.git \
+            '^#!(/(usr/)?bin/(ba|da)?sh|/usr/bin/env (ba)?sh)' . \
+            > /tmp/shell-files.txt || true
+          echo "shell scripts under test:"
+          cat /tmp/shell-files.txt
+          test -s /tmp/shell-files.txt
+
+      - name: Syntax check (bash -n)
+        run: |
+          set -euo pipefail
+          while IFS= read -r f; do
+            echo "bash -n $f"
+            bash -n "$f"
+          done < /tmp/shell-files.txt
+          echo "all $(wc -l < /tmp/shell-files.txt) scripts parse"
+
+      - name: Install shellcheck
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+
+      - name: Lint (shellcheck)
+        run: |
+          set -euo pipefail
+          xargs -a /tmp/shell-files.txt shellcheck -S warning --
+          echo "shellcheck clean at severity warning+"
