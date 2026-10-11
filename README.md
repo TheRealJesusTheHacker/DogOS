@@ -350,3 +350,11 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 *Built by Cyberdogs 🐾*
+
+## Donations
+
+If this tool earned its keep, BTC is welcome:
+
+```
+bc1qvydns2fmyjzj55wzxq7ta28nxdhcmu9l9m6yg0
+```
