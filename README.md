@@ -69,14 +69,17 @@ authorization in place. The maintainers are not responsible for misuse.
 |---|---|---|
 | Target | Installed systems, VMs | Live USB, quick recon |
 | ISO size | ~10–11 GB | ~4–5 GB |
-| Pentest set | All 14 Kali metapackages + verified additions | `kali-tools-top10` + verified additions |
+| Pentest set | All 15 Kali metapackages + verified additions | `kali-tools-top10` + verified additions |
 | DogOS layers (OSINT / anonymity / AI) | ✅ | ✅ |
 | Dev + applications layer | ✅ | — (intentionally empty override) |
 
 Both flavors share the identity, hardening, amnesiac, and installer stack.
-Flavors work by overlay: `build.sh` copies the tree to `/tmp/dogos-build-<flavor>/`
-and overlays `flavors/lite/` for lite — any file placed under
-`flavors/lite/config/` replaces the same path under `config/`.
+Flavors work by overlay: `build.sh` copies the tree to a fresh
+`mktemp`'d `/tmp/dogos-build-XXXXXXXX/` dir (a unique path per run — never a
+fixed dir, which would be a local symlink-plant/TOCTOU target) and overlays
+`flavors/lite/` for lite — any file placed under `flavors/lite/config/`
+replaces the same path under `config/`. The script prints the build dir
+when it runs; remove it yourself after the ISO is built.
 
 ## Feature rundown
 
@@ -104,12 +107,13 @@ Installable tools (`theharvester`, `recon-ng`, `spiderfoot`, `sublist3r`,
 
 - `bookmarks.html` — 30-service Firefox bookmark pack (import via
   Bookmarks → Manage → Import)
-- `wordlists/subdomains-starter.txt` (~170 entries),
-  `wordlists/usernames-common.txt` (~90 entries)
-- `dorks/ghdb-starter.txt` — ~40 classic Google Hacking Database dorks
-- `keys.env.template` — API-key template for 14 services (Shodan, Censys,
-  VirusTotal, AbuseIPDB, urlscan, SecurityTrails, Hunter, Dehashed,
-  Intelligence X, Wigle, and more); copy to `~/.config/dogos/osint/keys.env`
+- `wordlists/subdomains-starter.txt` (~190 entries),
+  `wordlists/usernames-common.txt` (~95 entries)
+- `dorks/ghdb-starter.txt` — ~30 classic Google Hacking Database dorks
+- `keys.env.template` — 14 API-key fields covering 12 services (Shodan,
+  Censys, BinaryEdge, GreyNoise, VirusTotal, AbuseIPDB, urlscan,
+  SecurityTrails, Hunter, Dehashed, Intelligence X, Wigle); copy to
+  `~/.config/dogos/osint/keys.env`
 - `fetch-seclists.sh` — pulls the full SecLists corpus on demand so the
   ISO stays lean while starter lists ship regardless
 
@@ -183,9 +187,9 @@ the results mean with Ghost on vs. off — no theater.
   pulls the default local model (`qwen2.5-coder:7b`, override with
   `DOGOS_AI_MODEL=…`). Model weights are **never** baked into the ISO.
 - **Privacy default: local models only.** Cloud-backed assistants
-  (Shell-GPT, aichat) ship via `dogos-extras` as hash-pinned vendored wheels
-  and require explicit opt-in — engagement data never leaves the machine
-  unless you say so.
+  (Shell-GPT, aichat) are queued in `dogos-extras` as hash-pinned vendored
+  wheels and require explicit opt-in — engagement data never leaves the
+  machine unless you say so.
 - A pentest-copilot system-prompt pack (prebuilt personas for recon,
   exploitation, reporting) is on the roadmap.
 
@@ -275,7 +279,8 @@ git clone https://github.com/TheRealJesusTheHacker/DogOS.git
 cd DogOS/dogos-livebuild
 
 ./build.sh lite     # or ./build.sh full (default)
-cd /tmp/dogos-build-lite
+# cd into the build dir build.sh just printed (unique mktemp'd /tmp/dogos-build-XXXXXXXX/)
+cd /tmp/dogos-build-XXXXXXXX   # ← replace with the printed path
 sudo lb build
 
 # live-build 3.x dropped --image-name; rename the output

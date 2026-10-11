@@ -1,4 +1,4 @@
-# DogOS subdomain starter list (~170 entries).
+# DogOS subdomain starter list (~190 entries).
 # Curated starter set — for the full corpus, run fetch-seclists.sh
 # (SecLists Discovery/DNS/subdomains-top1million).
 www

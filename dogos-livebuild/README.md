@@ -20,8 +20,11 @@ Scaffold for building the DogOS live ISO. Maps 1:1 to `../design-spec.md`.
 ## Flavors
 - `./build.sh full` (default) — kitchen sink, ~10–11 GB ISO
 - `./build.sh lite` — top10 + DogOS layers, ~4–5 GB ISO
-- The script assembles the flavor into `/tmp/dogos-build-<flavor>/`,
-  overlays `flavors/lite/` for lite, and runs `auto/config`.
+- The script assembles the flavor into a fresh `mktemp`'d
+  `/tmp/dogos-build-XXXXXXXX/` dir (unique per run — a fixed dir would be a
+  local symlink-plant/TOCTOU target), overlays `flavors/lite/` for lite,
+  and runs `auto/config`. It prints the build dir; remove it yourself
+  after the ISO is built.
   Then `sudo lb build` inside the build dir, and rename the ISO
   afterwards (3.x dropped --image-name): `mv live-image-*.iso dogos-<flavor>.iso`
 
@@ -36,11 +39,13 @@ Scaffold for building the DogOS live ISO. Maps 1:1 to `../design-spec.md`.
 1. DONE (2026-10-10): Kali archive wired — kali-rolling source + official 2025.3
    keyring, fingerprints verified against Kali's published values
    (see `config/archives/README.md`)
-2. Verify every package name with `apt-cache policy` (lists were written from
-   the design spec, not from a live archive query)
+2. DONE (2026-10-10): package names verified against the live Debian
+   forky / Kali rolling archive indices. Re-verify with `apt-cache policy`
+   before building anyway — a rolling base moves.
 3. `dogos-extras` repo: scaffold + first package (dogos-scripts 0.2.0) done —
    LOIC rejected post-audit; now: repackaged pip tools (hash-pinned, vendored
-   wheels), modern stress-tool candidates (T50, slowloris, Anevicon)
+   wheels), modern stress-tool candidates (T50, Anevicon — slowloris already
+   resolves via APT)
 4. DONE (2026-10-10): Plymouth animated splash — 8 pulsing Doberman frames +
    script theme with LUKS passphrase prompt handling
 5. DONE (2026-10-10): Ghost mode nftables redirect rules (TCP->TransPort,

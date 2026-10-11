@@ -27,7 +27,7 @@ _What is this OS for? Who is it for? What does it do better than anything else?_
 ## 5. Package management
 - **Package format/manager:** APT/dpkg (inherited from Debian)
 - **Release model:** Rolling on Debian testing, Kali-style (decided 2026-10-10) — fresh pentest tooling over stability
-- **Repos:** inherit Debian + Kali repos; small signed `dogos-extras` APT repo carrying only what Debian lacks (LOIC fork, repackaged OSINT/AI pip tools, dogos-ai-setup, Ghost mode scripts) — added 2026-10-10 per security review
+- **Repos:** inherit Debian + Kali repos; small signed `dogos-extras` APT repo carrying only what Debian lacks (repackaged OSINT/AI pip tools, dogos-ai-setup, Ghost mode scripts) — added 2026-10-10 per security review. (LOIC was considered and REJECTED after audit 2026-10-10 — no maintained port exists; see section 9.)
 - **Supply chain:** Debian packages preferred always; pip installs hash-pinned (`--require-hashes`) with wheels vendored into dogos-extras — added 2026-10-10 per security review
 
 ## 6. Shell & desktop
@@ -82,7 +82,7 @@ _What is this OS for? Who is it for? What does it do better than anything else?_
 - **Release integrity:** GPG-signed ISOs + checksums, fingerprint published out-of-band; offline master signing key — set 2026-10-10 per security review
 - **Flavors (decided 2026-10-10):** `dogos-full` — kitchen sink, ~14.9 GB installed package set (2,625 packages, recursive Depends) → roughly a **10–11 GB ISO**; for installed/VM use. `dogos-lite` — kali-tools-top10 + the DogOS OSINT/anonymity/AI layers (which ship in both), ~5.3 GB → roughly a **4–5 GB ISO**; live-USB friendly. Built via `build.sh [full|lite]`, which overlays `flavors/lite/` onto the tree (measured 2026-10-10 against live archive indices).
 - **First native package:** dogos-scripts 0.2.0 `.deb` built 2026-10-10 (engage/ghost/ai-setup/leaktest/hostname) — in `dogos-extras/staging/`.
-- **CI:** weekly automated build + boot smoke test (bit-rot defense for rolling + kitchen sink) — set 2026-10-10 per security review
+- **CI:** push/PR gate is shell syntax (`bash -n`) + shellcheck over every script — set 2026-10-10 per security review. A weekly automated build + boot smoke test is a ROADMAP item (bit-rot defense for rolling + kitchen sink), not yet implemented — see README "Status and roadmap".
 
 ## Open questions
 - (none yet)
