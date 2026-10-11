@@ -1,0 +1,3 @@
+# DogOS LITE dev-layer override — intentionally empty.
+# The dev + applications layer (config/package-lists/dogos-dev.list.chroot)
+# ships in the full flavor only, keeping lite live-USB friendly.

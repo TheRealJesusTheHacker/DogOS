@@ -1,0 +1,36 @@
+# DogOS dev + applications layer — FULL FLAVOR ONLY.
+# (flavors/lite/ ships an empty override so lite stays live-USB lean.)
+# Verified 2026-10-10 against live Debian/Kali archives.
+# Editors
+neovim
+geany
+# Toolchains
+golang
+rustc
+cargo
+python3-venv
+# VCS / containers
+git-lfs
+docker.io
+podman
+docker-compose
+# CLI power tools
+fzf
+ripgrep
+fd-find
+bat
+jq
+httpie
+strace
+ltrace
+hexedit
+cherrytree
+# Applications
+keepassxc
+flameshot
+remmina
+filezilla
+obs-studio
+kdenlive
+gimp
+audacity

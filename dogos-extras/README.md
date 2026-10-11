@@ -30,7 +30,7 @@ Signed-By: /usr/share/keyrings/dogos-extras.gpg
 ## Packaging status
 - BUILT 2026-10-10: dogos-scripts 0.2.0 (`staging/`) — engage, ghost, ai-setup, leaktest, hostname
 - REJECTED 2026-10-10: LOIC — audit found no maintained port; see design spec
-- Queued: holehe, maigret, sherlock, snscrape, shodan (pip → vendored, hash-pinned)
-- Queued: phoneinfoga, onionscan, photon, ghunt, blackbird (manual builds)
-- Queued: feather-wallet, yggdrasil, retroshare (upstream debs, mirrored+verified)
-- Candidates (modern stress tools, replacing LOIC): T50, slowloris, Anevicon
+- Queued (pip → vendored, hash-pinned): holehe, maigret, snscrape, shodan, social-analyzer, toutatis, whisper
+- Queued (manual builds): phoneinfoga, onionsearch, blackbird, ghunt, ligolo, cutter
+- Queued (upstream debs, mirrored+verified): feather-wallet, yggdrasil, retroshare, gh (GitHub CLI), android-tools-adb/fastboot, bless
+- RESOLVED via APT 2026-10-10: sherlock, photon, slowloris, dnstwist, instaloader, finalrecon, ffuf, gobuster, chisel, bloodhound, hcxtools, hcxdumptool, ghidra, valgrind, dnscrypt-proxy, privoxy, llama.cpp (all in dogos-*.list.chroot)

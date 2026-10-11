@@ -17,3 +17,9 @@ torbrowser-launcher
 # pip/vendored via dogos-extras: holehe, maigret, sherlock, snscrape,
 # instaloader (verify; may be in Debian), shodan, dnstwist (verify)
 # manual via dogos-extras: phoneinfoga, onionscan, photon, ghunt, blackbird
+# Verified additions 2026-10-10 (live Debian/Kali archive check) — both flavors:
+dnstwist
+instaloader
+sherlock
+photon
+finalrecon

@@ -5,3 +5,5 @@ python3-pip
 # TODO-verify: llama.cpp packaging (else build in dogos-extras)
 # pip/vendored via dogos-extras, hash-pinned: sgpt (shell-gpt), aichat
 # manual via dogos-ai-setup: ollama (official install script), GPT4All/Jan (desktop apps)
+# Verified addition 2026-10-10 (Kali archive) — both flavors:
+llama.cpp

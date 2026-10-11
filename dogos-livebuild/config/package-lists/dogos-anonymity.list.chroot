@@ -6,7 +6,10 @@ nyx
 onionshare
 i2pd
 obfs4proxy
-dnsutils
+bind9-dnsutils
+# Verified additions 2026-10-10 (live Debian/Kali archive check) — both flavors:
+dnscrypt-proxy
+privoxy
 # TODO-verify packaging before build: snowflake-client, yggdrasil, retroshare
 # manual via dogos-extras: feather-wallet, briar-desktop, i2p-bote
 # ahmia + other web services ship in the Firefox bookmark pack (includes.chroot)
