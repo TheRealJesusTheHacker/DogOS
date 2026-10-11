@@ -6,6 +6,12 @@
 # path is probed and anything unrecognized is skipped with a warning.
 set -e
 
+# NOTE: temp files go through mktemp — fixed /tmp names would collide (or be
+# symlink-planted) if two builds ever ran at once.
+ENTRY="$(mktemp /tmp/dogos-amn-entry.XXXXXX)"
+GRUB_ENTRY="$(mktemp /tmp/dogos-amn-grub.XXXXXX)"
+trap 'rm -f "$ENTRY" "$GRUB_ENTRY"' EXIT
+
 # --- syslinux / isolinux (BIOS) ---
 for cfg in binary/isolinux/live.cfg binary/isolinux/isolinux.cfg; do
   [ -f "$cfg" ] || continue
@@ -14,15 +20,15 @@ for cfg in binary/isolinux/live.cfg binary/isolinux/isolinux.cfg; do
     continue
   fi
   # first label block: from '^label ' to the first blank line
-  awk '/^label /{c++} c==1{print} c==1 && /^$/{exit}' "$cfg" > /tmp/dogos-amn-entry.txt
-  if [ -s /tmp/dogos-amn-entry.txt ]; then
+  awk '/^label /{c++} c==1{print} c==1 && /^$/{exit}' "$cfg" > "$ENTRY"
+  if [ -s "$ENTRY" ]; then
     {
       echo ""
       sed -e 's/^label [^ ]*/label live-amnesiac/' \
           -e '/menu default/d' \
           -e 's/menu label .*/menu label ^DogOS amnesiac (RAM only)/' \
           -e 's/^\([[:space:]]*append .*\)/\1 toram/' \
-          /tmp/dogos-amn-entry.txt
+          "$ENTRY"
     } >> "$cfg"
     echo "amnesiac entry added to $cfg"
   else
@@ -37,11 +43,11 @@ if [ -f "$cfg" ]; then
     echo "amnesiac entry already present in $cfg"
   else
     # first menuentry block: from '^menuentry ' to the closing brace
-    awk '/^menuentry /{c++} c==1{print} c==1 && /^\}/{exit}' "$cfg" > /tmp/dogos-amn-grub.txt
-    if [ -s /tmp/dogos-amn-grub.txt ]; then
+    awk '/^menuentry /{c++} c==1{print} c==1 && /^\}/{exit}' "$cfg" > "$GRUB_ENTRY"
+    if [ -s "$GRUB_ENTRY" ]; then
       sed -e 's/^menuentry "[^"]*"/menuentry "DogOS amnesiac (RAM only)"/' \
           -e 's/^\([[:space:]]*linux[[:space:]].*\)/\1 toram/' \
-          /tmp/dogos-amn-grub.txt >> "$cfg"
+          "$GRUB_ENTRY" >> "$cfg"
       echo "amnesiac entry added to $cfg"
     else
       echo "WARNING: no parseable menuentry in $cfg — amnesiac entry skipped"
