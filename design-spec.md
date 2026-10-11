@@ -1,4 +1,4 @@
-# OS Design Spec — codename TBD
+# DogOS Design Spec — release "Doberman"
 
 _Living design document. Updated as decisions get made. Started 2026-10-10._
 
@@ -7,7 +7,7 @@ _Living design document. Updated as decisions get made. Started 2026-10-10._
 - **Logo:** the Cyberdogs geometric black-and-tan Doberman head (`~/workspace/your_files/brand/cyberdogs-logo.jpg`)
 - **Boot splash:** animated splash screen featuring the logo (Plymouth theme — build task)
 - **Wallpaper:** dark hacker theme built around the logo (decided 2026-10-10) — v1 draft: `~/workspace/os-design/assets/media-generation-dogos-wallpaper-v1-0-e33e9431-bfb2-41ba-b1f2-083ecaa9bf9a.webp`
-- **Codename:** TBD
+- **Codename:** dog breeds; first release "Doberman" (decided 2026-10-10)
 - **Tagline:** "All Dogs Go To Heaven" (decided 2026-10-10)
 
 ## 2. Mission
