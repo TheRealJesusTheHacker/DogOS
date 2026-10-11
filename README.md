@@ -359,6 +359,28 @@ checklist.
 
 Business inquiries: **Sentinelsafeguard@outlook.com**
 
+## Third-party software
+
+DogOS is built from and with open-source projects — their own licenses
+apply to their work; DogOS's own code is MIT (see below). Highlights:
+
+- **Kali Linux** — the Kali archive (`kali-rolling`) supplies the pentest
+  toolset; keyring fingerprints verified against Kali's published values
+  (see `dogos-livebuild/config/archives/README.md`). https://www.kali.org
+- **Debian live-build** — assembles the ISO from this config tree (GPL-3.0).
+  https://salsa.debian.org/live-team/live-build
+- **Calamares** — graphical system installer (GPL-3.0).
+  https://calamares.io
+- **SecLists** — on-demand wordlist corpus, fetched at a pinned commit
+  (MIT); the starter lists in-tree are DogOS-curated.
+  https://github.com/danielmiessler/SecLists
+- **Exploit-DB GHDB** — the dork patterns in the in-tree starter set are
+  modeled on this corpus. https://www.exploit-db.com/google-hacking-database
+- **Tor, nftables, MATE, Plymouth** — ship as distro packages, used
+  unmodified from the Debian/Kali archives. https://www.torproject.org ·
+  https://netfilter.org · https://mate-desktop.org ·
+  https://www.freedesktop.org/wiki/Software/Plymouth/
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
