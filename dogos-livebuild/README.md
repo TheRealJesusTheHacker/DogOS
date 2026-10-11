@@ -6,7 +6,8 @@ Scaffold for building the DogOS live ISO. Maps 1:1 to `../design-spec.md`.
 - `auto/config` — live-build entrypoint (`./auto/config && sudo lb build`)
 - `config/package-lists/` — APT package lists per layer (`.list.chroot`)
 - `config/archives/` — extra APT sources (Kali repo — see README there)
-- `config/hooks/live/` — chroot hooks (branding, hardening, scripts)
+- `config/hooks/` — hooks, flat per live-build 3.x (`*.chroot`, `*.binary`:
+  branding, hardening, scripts, amnesiac boot entry)
 - `config/includes.chroot/` — files overlaid into the live system
   (`/usr/local/bin/dogos-*` helpers, nftables base rules, sysctls,
   wallpaper, OSINT resource dirs)
