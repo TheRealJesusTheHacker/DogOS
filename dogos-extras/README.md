@@ -1,8 +1,9 @@
 # dogos-extras — DogOS signed APT repository
 
-Holds everything DogOS needs that Debian doesn't ship: the LOIC fork
-(post-audit), repackaged pip tools (hash-pinned, vendored wheels), and the
-`dogos-*` helper scripts as proper packages.
+Holds everything DogOS needs that Debian doesn't ship: repackaged pip
+tools (hash-pinned, vendored wheels), manually built tools, and the
+`dogos-*` helper scripts as proper packages. (LOIC was audited and
+REJECTED 2026-10-10 — no maintained port exists; see design spec.)
 
 ## One-time setup (Skyler)
 1. Generate the **offline master signing key** (spec section 10: release integrity):
@@ -17,7 +18,9 @@ Holds everything DogOS needs that Debian doesn't ship: the LOIC fork
 ## Publishing the key
 `./scripts/export-key.sh` → `dogos-extras.asc`
 
-## Client config (ships in the DogOS image via live-build includes)
+## Client config (TODO: ships in the DogOS image via live-build includes
+once the repo URL and signing key exist — do NOT add a placeholder source
+before then; a dead `URIs:` entry breaks `apt update` on every boot)
 ```
 # /etc/apt/sources.list.d/dogos-extras.sources
 Types: deb
