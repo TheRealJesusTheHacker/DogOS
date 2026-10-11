@@ -53,4 +53,4 @@ Design-complete and scaffold-validated (`lb config` passes against live-build
 3.x). No release ISO yet — first build targets real hardware. Release
 codenames: dog breeds, starting with **Doberman**.
 
-Built by Sentinel Safeguard LLC.
+Built by Cyberdogs 
