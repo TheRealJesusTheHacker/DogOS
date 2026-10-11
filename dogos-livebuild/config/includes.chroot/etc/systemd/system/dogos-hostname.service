@@ -1,7 +1,9 @@
 [Unit]
 Description=DogOS amnesiac hostname randomization (live boot only)
-ConditionPathExists=/run/live/medium
-ConditionPathExists=/lib/live/mount/medium
+# NOTE: no ConditionPathExists here on purpose — the script itself exits
+# quietly on installed systems. (Two ConditionPathExists= lines would be
+# AND logic and the service would never start: only one live-media path
+# exists per boot.)
 After=network-pre.target
 Before=network.target
 

@@ -11,6 +11,7 @@
 #  - Tor exits are blocked by many targets; latency kills interactive shells.
 #  - Running attacks through volunteer exits burns community goodwill.
 set -euo pipefail
+[ "$(id -u)" -eq 0 ] || { echo "error: run as root"; exit 1; }
 
 TRANSPORT_PORT=9040
 DNS_PORT=5353
@@ -58,11 +59,18 @@ AutomapHostsOnResolve 1
 EOF2
     systemctl restart tor
     echo "waiting for Tor TransPort..."
+    up=0
     for _ in $(seq 1 30); do
-      (echo > /dev/tcp/127.0.0.1/$TRANSPORT_PORT) 2>/dev/null && break
+      if (echo > /dev/tcp/127.0.0.1/$TRANSPORT_PORT) 2>/dev/null; then up=1; break; fi
       sleep 1
     done
+    if [ "$up" -ne 1 ]; then
+      echo "ERROR: Tor TransPort not listening after 30s — ghost NOT enabled (network untouched)"
+      exit 1
+    fi
     write_rules
+    # idempotent: clear any previous ghost table before loading
+    nft delete table inet ghost 2>/dev/null || true
     nft -f "$GHOST_RULES"
     echo "Ghost mode ON."
     echo "Verify: curl --noproxy '*' https://check.torproject.org/api/ip"

@@ -40,7 +40,7 @@ if [ -f "$cfg" ]; then
     awk '/^menuentry /{c++} c==1{print} c==1 && /^\}/{exit}' "$cfg" > /tmp/dogos-amn-grub.txt
     if [ -s /tmp/dogos-amn-grub.txt ]; then
       sed -e 's/^menuentry "[^"]*"/menuentry "DogOS amnesiac (RAM only)"/' \
-          -e 's/^\([[:space:]]*linux .*\)/\1 toram/' \
+          -e 's/^\([[:space:]]*linux[[:space:]].*\)/\1 toram/' \
           /tmp/dogos-amn-grub.txt >> "$cfg"
       echo "amnesiac entry added to $cfg"
     else

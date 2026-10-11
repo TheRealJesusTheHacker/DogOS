@@ -19,7 +19,6 @@ if [ "$FLAVOR" = "lite" ]; then
 fi
 
 cd "$BUILD"
-export DOGOS_IMAGE_NAME="dogos-$FLAVOR"
 ./auto/config
 echo ""
 echo "configured: flavor=$FLAVOR"

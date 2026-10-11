@@ -3,6 +3,7 @@
 # Model weights are NEVER baked into the ISO; they download on demand.
 # Override the model:  DOGOS_AI_MODEL="llama3.1:8b" dogos-ai-setup
 set -euo pipefail
+[ "$(id -u)" -eq 0 ] || { echo "error: run as root"; exit 1; }
 MODEL="${DOGOS_AI_MODEL:-qwen2.5-coder:7b}"
 
 if ! command -v ollama >/dev/null 2>&1; then

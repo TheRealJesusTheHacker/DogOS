@@ -1,28 +1,45 @@
 #!/bin/bash
-# dogos-engage — explicit firewall exceptions for engagement listeners.
-# The firewall stays ON (default-deny); you open only what the engagement needs.
+# dogos-engage — explicit, visible exceptions for engagements.
+# The firewall stays ON (default-deny incoming); you open only what you need.
+# Ports live in the engage_ports set: open/close are idempotent, and `close`
+# never disturbs other tables (e.g. ghost mode).
 # Usage: dogos-engage open 4444 8000 | dogos-engage close | dogos-engage status
+#        dogos-engage route on|off   (IP forwarding for MITM/pivot work)
 set -euo pipefail
+[ "$(id -u)" -eq 0 ] || { echo "error: run as root"; exit 1; }
 TABLE="inet dogos"
+SET="engage_ports"
 
 case "${1:-}" in
   open)
     shift
     [ $# -eq 0 ] && { echo "usage: dogos-engage open <port> [port...]"; exit 1; }
     for p in "$@"; do
-      nft add rule $TABLE input tcp dport "$p" accept
+      case "$p" in ''|*[!0-9]*) echo "invalid port: $p"; exit 1;; esac
+      [ "$p" -ge 1 ] && [ "$p" -le 65535 ] || { echo "invalid port: $p"; exit 1; }
+      nft add element $TABLE $SET "{ $p }"
       echo "opened TCP/$p (engagement exception — visible, deliberate)"
     done
     ;;
   close)
-    nft -f /etc/nftables.conf
-    echo "engagement exceptions cleared; base policy restored"
+    nft flush set $TABLE $SET
+    echo "engagement ports cleared (ghost mode untouched)"
+    ;;
+  route)
+    case "${2:-}" in
+      on)  sysctl -w net.ipv4.ip_forward=1 >/dev/null && echo "IP forwarding ON (engagement only — off by default)" ;;
+      off) sysctl -w net.ipv4.ip_forward=0 >/dev/null && echo "IP forwarding OFF" ;;
+      *)   echo "usage: dogos-engage route {on|off}"; exit 1 ;;
+    esac
     ;;
   status)
-    nft list chain $TABLE input
+    echo "--- engagement ports ---"
+    nft list set $TABLE $SET
+    echo "--- ip_forward ---"
+    sysctl -n net.ipv4.ip_forward | sed 's/^1$/ON (engagement routing)/;s/^0$/off (default)/'
     ;;
   *)
-    echo "usage: dogos-engage {open <port> [port...]|close|status}"
+    echo "usage: dogos-engage {open <port> [port...]|close|status|route {on|off}}"
     exit 1
     ;;
 esac
