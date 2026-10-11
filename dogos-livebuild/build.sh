@@ -5,14 +5,15 @@
 set -euo pipefail
 
 FLAVOR="${1:-full}"
-SRC="$(cd "$(dirname "$0")" && pwd)"
-BUILD="/tmp/dogos-build-$FLAVOR"
-
 [ "$FLAVOR" = "full" ] || [ "$FLAVOR" = "lite" ] || {
   echo "usage: build.sh [full|lite]"; exit 1; }
+SRC="$(cd "$(dirname "$0")" && pwd)"
+# Unique build dir per run: the old fixed /tmp/dogos-build-$FLAVOR path was a
+# symlink-plant / TOCTOU target for other local users. The path is printed
+# below; remove it yourself after the ISO is built.
+BUILD="$(mktemp -d /tmp/dogos-build-XXXXXXXX)"
 
 echo "assembling flavor '$FLAVOR' in $BUILD ..."
-rm -rf "$BUILD" && mkdir -p "$BUILD"
 tar -cf - --exclude='./flavors' -C "$SRC" . | tar -xf - -C "$BUILD"
 if [ "$FLAVOR" = "lite" ]; then
   cp -r "$SRC/flavors/lite/." "$BUILD/"
