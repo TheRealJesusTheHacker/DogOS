@@ -15,7 +15,18 @@ set -euo pipefail
 [ "$(id -u)" -eq 0 ] || { echo "error: run as root"; exit 1; }
 
 MARKER="/var/lib/dogos/install-cleanup.done"
+# Touched when we REFUSE to clean because the live account cannot be
+# identified deterministically — the loud-skip flag Skyler can check.
+SKIP_FLAG="/var/lib/dogos-cleanup-SKIPPED"
 LIVE_USER="${DOGOS_LIVE_USER:-user}"
+
+# Sanitize BEFORE the value is ever interpolated into a sed ERE: a username
+# is [a-zA-Z0-9_-] and never starts with - or _. Anything else aborts.
+case "$LIVE_USER" in
+  ''|*[!a-zA-Z0-9_-]*|-*|_*)
+    echo "dogos-install-cleanup: refusing — DOGOS_LIVE_USER has an unsafe value" >&2
+    exit 1 ;;
+esac
 
 # Live media: nothing to clean up.
 if [ -e /run/live/medium ] || [ -e /lib/live/mount/medium ]; then
@@ -23,12 +34,60 @@ if [ -e /run/live/medium ] || [ -e /lib/live/mount/medium ]; then
 fi
 [ -e "$MARKER" ] && exit 0
 
+# --- Identify the live account deterministically. ---
+# A name match is NOT enough: a real installed user could also be called
+# `user`, and an OEM layout could rename things — name-only exclusion once
+# let a real installed `user` slip through, leaving the passwordless-sudo
+# live account and autologin on an installed system. The live account is the
+# one live-config's own runtime artifacts point at:
+#   * /etc/sudoers.d/live — the passwordless-sudo grant names the live user
+#   * LightDM autologin-user= lines that live-config wrote at live boot
+live_from_sudoers="$(sed -n 's/^[[:space:]]*\([A-Za-z_][A-Za-z0-9_-]*\)[[:space:]].*NOPASSWD.*/\1/p' /etc/sudoers.d/live 2>/dev/null | head -n1 || true)"
+live_from_lightdm="$(grep -Eho '^[[:space:]]*autologin-user[[:space:]]*=[[:space:]]*[A-Za-z_][A-Za-z0-9_-]*' /etc/lightdm/lightdm.conf /etc/lightdm/lightdm.conf.d/*.conf 2>/dev/null | sed 's/^[^=]*=[[:space:]]*//' | head -n1 || true)"
+
+LIVE_IDENTIFIED=""
+if [ -n "$live_from_sudoers" ] && [ -n "$live_from_lightdm" ]; then
+  # Both artifacts must AGREE — a disagreement means the layout is not what
+  # we expect, and guessing wrong could delete a real user.
+  [ "$live_from_sudoers" = "$live_from_lightdm" ] && LIVE_IDENTIFIED="$live_from_sudoers"
+elif [ -n "$live_from_sudoers" ]; then
+  LIVE_IDENTIFIED="$live_from_sudoers"
+elif [ -n "$live_from_lightdm" ]; then
+  LIVE_IDENTIFIED="$live_from_lightdm"
+fi
+
+# Nothing to clean at all: no live residue artifacts and no live-user
+# account. (Not the loud skip — there is simply nothing here.)
+if [ -z "$LIVE_IDENTIFIED" ] && [ ! -e /etc/sudoers.d/live ] \
+   && [ -z "$live_from_lightdm" ] && ! id "$LIVE_USER" >/dev/null 2>&1; then
+  mkdir -p /var/lib/dogos
+  touch "$MARKER"
+  systemctl disable dogos-install-cleanup.service >/dev/null 2>&1 || true
+  exit 0
+fi
+
+# UNCERTAIN: something live-shaped is present, but the live account cannot
+# be identified deterministically. Guessing could delete a real installed
+# user — so the skip is LOUD, not silent: console broadcast + syslog +
+# flag file, and a failing exit so the boot log shows it.
+if [ -z "$LIVE_IDENTIFIED" ]; then
+  msg="dogos-install-cleanup: SKIPPED — live residue present but the live account could not be identified deterministically; refusing to remove any user (flag: $SKIP_FLAG)"
+  echo "$msg" >&2
+  logger -t dogos-install-cleanup "$msg" 2>/dev/null || true
+  printf '%s\n' "$msg" | wall 2>/dev/null || true
+  mkdir -p /var/lib/dogos
+  touch "$SKIP_FLAG"
+  exit 1
+fi
+
 # Safety: never remove the live user unless a REAL (Calamares-created) login
 # user exists — otherwise the installed system would have no one to log in as.
+# The exclusion is by the DETERMINISTICALLY IDENTIFIED live account, not by
+# the $LIVE_USER name.
 real_user=0
 while IFS=: read -r name _ uid _ _ _ shell; do
-  [ "$name" = "$LIVE_USER" ] && continue
   [ "$name" = "root" ] && continue
+  [ "$name" = "$LIVE_IDENTIFIED" ] && continue
   case "$uid" in ''|*[!0-9]*) continue;; esac
   [ "$uid" -ge 1000 ] || continue
   case "$shell" in */false|*/nologin) continue;; esac
@@ -46,7 +105,9 @@ rm -f /etc/sudoers.d/live
 # 2. LightDM autologin of the live user (live-config wrote this at live boot;
 #    Calamares copies /etc into the target). Only the live user's lines go —
 #    an admin's own autologin-user=<someone-else> is left untouched.
-autologin_re="^[[:space:]]*autologin-user[[:space:]]*=[[:space:]]*${LIVE_USER}([[:space:]]*(#.*)?)?$"
+#    LIVE_IDENTIFIED is regex-extracted from live-config's own artifacts
+#    (never raw user input), so it is safe to interpolate into this ERE.
+autologin_re="^[[:space:]]*autologin-user[[:space:]]*=[[:space:]]*${LIVE_IDENTIFIED}([[:space:]]*(#.*)?)?$"
 if [ -f /etc/lightdm/lightdm.conf ]; then
   sed -i -E "/${autologin_re}/d" /etc/lightdm/lightdm.conf
 fi
@@ -60,13 +121,22 @@ for f in /etc/lightdm/lightdm.conf.d/*.conf; do
 done
 
 # 3. The live user itself.
-if id "$LIVE_USER" >/dev/null 2>&1; then
-  pkill -u "$LIVE_USER" 2>/dev/null || true
-  userdel -r "$LIVE_USER" 2>/dev/null || userdel "$LIVE_USER" || true
-  echo "dogos-install-cleanup: removed live user '$LIVE_USER'"
+if id "$LIVE_IDENTIFIED" >/dev/null 2>&1; then
+  live_home="$(getent passwd "$LIVE_IDENTIFIED" | cut -d: -f6)"
+  pkill -u "$LIVE_IDENTIFIED" 2>/dev/null || true
+  if ! userdel -r "$LIVE_IDENTIFIED" 2>/dev/null; then
+    userdel "$LIVE_IDENTIFIED" 2>/dev/null || true
+    # Fallback: userdel -r failed (e.g. home still busy) — remove the KNOWN
+    # live home explicitly, but only the exact expected path, never a guess.
+    if [ "$live_home" = "/home/$LIVE_IDENTIFIED" ] && [ -d "$live_home" ]; then
+      rm -rf "$live_home"
+    fi
+  fi
+  echo "dogos-install-cleanup: removed live user '$LIVE_IDENTIFIED'"
 fi
 
 mkdir -p /var/lib/dogos
+rm -f "$SKIP_FLAG"   # a previous loud-skip is now resolved
 touch "$MARKER"
 systemctl disable dogos-install-cleanup.service >/dev/null 2>&1 || true
 echo "dogos-install-cleanup: done"
