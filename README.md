@@ -91,7 +91,9 @@ when it runs; remove it yourself after the ISO is built.
   `-sniffing-spoofing`, `-post-exploitation`, `-forensics`, `-reporting`,
   `-crypto-stego`, `-hardware`) plus verified additions from the live
   Debian/Kali archives: `ffuf`, `gobuster`, `chisel`, `bloodhound`,
-  `hcxtools`, `hcxdumptool`, `ghidra`, `valgrind`, `slowloris`.
+  `hcxtools`, `hcxdumptool`, `ghidra`, `valgrind`, `slowloris`, `beef-xss`
+  (also pulled in by `kali-tools-exploitation`; listed explicitly so both
+  flavors document it the same way).
 - **Lite flavor:** `kali-tools-top10` plus the lean verified additions
   (`ffuf`, `gobuster`, `chisel`, `hcxtools`, `hcxdumptool`, `slowloris`,
   `beef-xss`). Bloodhound and Ghidra stay full-only deliberately — their
@@ -133,6 +135,12 @@ dogos-ghost portal   # 5-minute captive-portal hatch for hotel/cafe logins
 dogos-ghost status   # is Ghost mode on? is tor running?
 dogos-ghost per-app  # per-app routing cheat sheet (torsocks, proxychains4)
 ```
+
+**Portal-hatch detail:** `portal` arms the 5-minute auto re-enable with a
+timestamped marker in `/run` — the timer only fires if the marker still
+exists and the full 5 minutes have elapsed. Running `on` or `off` cancels
+it, so an `off` after `portal` can never silently re-enable Tor, and a
+second `portal` extends the hatch instead of stacking timers.
 
 Mechanism: an nftables `nat` table redirects TCP → Tor's TransPort (9040)
 and DNS → Tor's DNSPort (5353), with Tor's own traffic excluded by UID so it
@@ -194,6 +202,17 @@ the results mean with Ghost on vs. off — no theater.
   machine unless you say so.
 - A pentest-copilot system-prompt pack (prebuilt personas for recon,
   exploitation, reporting) is on the roadmap.
+
+### Dev + applications layer (full flavor only)
+
+Neovim, Go/Rust toolchains, CLI power tools, and applications (KeePassXC,
+OBS, GIMP, …), plus containers: `docker.io`, `podman`, `docker-compose`.
+
+**Docker caveat:** membership in the `docker` group is effectively root —
+the daemon runs as root, and `docker run -v /:/host …` owns the box.
+Treat `docker` group membership like sudo: grant it only to the admin
+user, never to shared or low-privilege accounts. Docker stays in the full
+flavor for pentest workflows; this is a configuration note, not a removal.
 
 ### DogOS helper scripts (`dogos-scripts` 0.2.0)
 
