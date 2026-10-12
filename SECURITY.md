@@ -30,7 +30,10 @@ working from potentially hostile networks. It protects:
 
 - Operator anonymity (Ghost mode, amnesiac live boot, MAC randomization)
 - Data at rest (LUKS via the installer)
-- Toolkit integrity (signed repos, checksummed ISOs)
+- Toolkit integrity (signed repos, checksummed ISOs) — **ROADMAP, not yet
+  implemented**: no bootable ISO has been built yet (v0.1.0 is project
+  source only), and `dogos-extras` is a repo scaffold, so there is nothing
+  to sign or checksum today. This bullet describes the target state.
 
 It does **not** claim to defend against physical seizure of an unlocked
 machine, operator OPSEC failures, or targeted endpoint compromise by a
