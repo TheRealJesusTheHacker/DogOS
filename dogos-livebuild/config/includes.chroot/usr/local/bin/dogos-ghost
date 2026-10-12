@@ -13,9 +13,16 @@
 set -euo pipefail
 [ "$(id -u)" -eq 0 ] || { echo "error: run as root"; exit 1; }
 
+# Resolve our own path once, up front: the portal timer re-execs "$0", and
+# a relative $0 would break (silently) if the timer's CWD ever differed.
+SCRIPT_ABS="$(readlink -f "$(command -v "$0" 2>/dev/null || printf '%s' "$0")" 2>/dev/null || printf '%s' "$0")"
+
 TRANSPORT_PORT=9040
 DNS_PORT=5353
 GHOST_RULES="/etc/nftables.d/ghost.nft"
+# Portal-hatch marker: holds the epoch at which the hatch EXPIRES.
+# Volatile (/run) so a reboot can never leave a stale marker behind.
+PORTAL_MARKER="/run/dogos-ghost-portal"
 
 write_rules() {
   local tor_uid tmp
@@ -54,6 +61,9 @@ EOF
 
 case "${1:-}" in
   on)
+    # A pending portal timer must never re-fire after an explicit `on`:
+    # the marker is gone, so the timer stands down (see portal branch).
+    rm -f "$PORTAL_MARKER"
     cat <<'EOF'
 [!] Ghost mode: recon/anonymity phase ONLY.
     - Non-DNS UDP and ICMP BYPASS Tor — verify with a leak test.
@@ -87,18 +97,41 @@ EOF2
     echo "Verify: curl --noproxy '*' https://check.torproject.org/api/ip"
     ;;
   off)
+    # Cancel any pending portal timer: deleting the marker means the timer
+    # can never re-enable Tor after an explicit `off`.
+    rm -f "$PORTAL_MARKER"
     nft delete table inet ghost 2>/dev/null || true
     rm -f "$GHOST_RULES"
+    # NOTE: /etc/tor/torrc.d/dogos-ghost.conf is deliberately LEFT in place
+    # and tor is NOT restarted here. TransPort/DNSPort only listen on
+    # 127.0.0.1 and nothing routes into them without the ghost nft table,
+    # so the open ports are inert — and keeping the config means `on`
+    # doesn't pay a tor restart on every toggle.
     echo "Ghost mode OFF — traffic is direct again."
     ;;
   portal)
     # Captive-portal hatch: drop the redirect so the hotel/cafe login page
     # loads, then re-enable automatically after 5 minutes.
     nft delete table inet ghost 2>/dev/null || true
+    # Timestamped marker: the re-enable timer below only fires if this
+    # marker still exists AND the full 5 minutes have elapsed since the
+    # LATEST `portal` run. Running `on` or `off` deletes the marker, so
+    # `portal` followed by `off` can never silently re-enable Tor; running
+    # `portal` twice pushes the expiry forward, so the stale first timer
+    # stands down instead of re-enabling early.
+    printf '%s\n' "$(( $(date +%s) + 300 ))" > "$PORTAL_MARKER"
     echo "Portal hatch open for 5 minutes — log in, then run: dogos-ghost on"
     # HUP-immune and detached: closing the terminal must not kill the timer,
     # or ghost mode would silently stay OFF past the 5 minutes.
-    ( trap '' HUP; sleep 300; exec "$0" on ) >/dev/null 2>&1 &
+    ( trap '' HUP; sleep 300
+      now="$(date +%s)"
+      expiry="$(cat "$PORTAL_MARKER" 2>/dev/null || echo 0)"
+      rm -f "$PORTAL_MARKER"
+      case "$expiry" in ''|*[!0-9]*) exit 0;; esac
+      if [ "$now" -ge "$expiry" ]; then
+        exec "$SCRIPT_ABS" on
+      fi
+    ) >/dev/null 2>&1 &
     disown 2>/dev/null || true
     ;;
   status)
