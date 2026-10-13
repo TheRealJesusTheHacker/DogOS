@@ -129,11 +129,20 @@ EOF2
     # HUP-immune and detached: closing the terminal must not kill the timer,
     # or ghost mode would silently stay OFF past the 5 minutes.
     ( trap '' HUP; sleep 300
-      now="$(date +%s)"
-      expiry="$(cat "$PORTAL_MARKER" 2>/dev/null || echo 0)"
-      rm -f "$PORTAL_MARKER"
+      # A MISSING marker means `on` or `off` ran while we slept — stand
+      # down. (The old `|| echo 0` fallback read a deleted marker as
+      # "expired at epoch 0" and re-enabled ghost after an explicit
+      # `off`.) A corrupt marker stands down the same way.
+      expiry="$(cat "$PORTAL_MARKER" 2>/dev/null || echo none)"
       case "$expiry" in ''|*[!0-9]*) exit 0;; esac
+      now="$(date +%s)"
       if [ "$now" -ge "$expiry" ]; then
+        # Fire only if the marker still holds OUR expiry. A later
+        # `portal` run re-arms it (expiry pushed forward) and that
+        # run's timer owns the re-enable — and a timer that stands
+        # down must never delete a marker it does not own.
+        [ "$(cat "$PORTAL_MARKER" 2>/dev/null || echo none)" = "$expiry" ] || exit 0
+        rm -f "$PORTAL_MARKER"
         exec "$SCRIPT_ABS" on
       fi
     ) >/dev/null 2>&1 &
