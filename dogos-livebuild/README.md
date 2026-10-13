@@ -56,5 +56,5 @@ Scaffold for building the DogOS live ISO. Maps 1:1 to `../design-spec.md`.
    service), dogos-leaktest, OSINT bookmark pack (30 services), MATE menu
    categories, dogos-scripts 0.2.0
 9. DONE (2026-10-10): `toram` amnesiac boot-menu entry (binary hook clones the
-   default syslinux/GRUB entries, defensive); wordlists (subdomains ~170,
-   usernames ~90), GHDB dork starter set (~40), SecLists on-demand fetcher
+   default syslinux/GRUB entries, defensive); wordlists (subdomains ~190,
+   usernames ~95), GHDB dork starter set (~30), SecLists on-demand fetcher
