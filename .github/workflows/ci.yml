@@ -41,7 +41,14 @@ jobs:
           echo "all $(wc -l < /tmp/shell-files.txt) scripts parse"
 
       - name: Install shellcheck
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+        # GitHub's ubuntu images already ship shellcheck. The apt
+        # update+install round-trip was the slowest step in this workflow
+        # (the checks themselves take seconds) — only pay it when the
+        # tool is genuinely missing.
+        run: |
+          if ! command -v shellcheck >/dev/null 2>&1; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          fi
 
       - name: Lint (shellcheck)
         run: |
