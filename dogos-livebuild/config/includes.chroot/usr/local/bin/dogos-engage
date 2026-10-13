@@ -20,6 +20,13 @@ case "${1:-}" in
     [ $# -eq 0 ] && { echo "usage: dogos-engage open <port> [port...]"; exit 1; }
     for p in "$@"; do
       case "$p" in ''|*[!0-9]*) echo "invalid port: $p"; exit 1;; esac
+      # Length first: a digit string too long for bash's integer
+      # comparison makes BOTH range tests below error out (treated as
+      # false), so an absurd "port" would sail through to nft. A real
+      # port has at most 5 digits.
+      if [ "${#p}" -gt 5 ]; then
+        echo "invalid port: $p"; exit 1
+      fi
       if [ "$p" -lt 1 ] || [ "$p" -gt 65535 ]; then
         echo "invalid port: $p"; exit 1
       fi
@@ -28,7 +35,14 @@ case "${1:-}" in
     done
     ;;
   close)
-    nft flush set "$FAMILY" "$TABLE" "$SET"
+    # Idempotent like the header promises: when the base ruleset is not
+    # loaded there is no set to flush — that is the desired end state,
+    # not an error (mirrors how `status` reports the same condition).
+    if nft list set "$FAMILY" "$TABLE" "$SET" >/dev/null 2>&1; then
+      nft flush set "$FAMILY" "$TABLE" "$SET"
+    else
+      echo "(engage set not present — base firewall ruleset not loaded)"
+    fi
     echo "engagement ports cleared (ghost mode untouched)"
     ;;
   route)
