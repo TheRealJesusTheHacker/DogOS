@@ -13,10 +13,6 @@
 set -euo pipefail
 [ "$(id -u)" -eq 0 ] || { echo "error: run as root"; exit 1; }
 
-# Resolve our own path once, up front: the portal timer re-execs "$0", and
-# a relative $0 would break (silently) if the timer's CWD ever differed.
-SCRIPT_ABS="$(readlink -f "$(command -v "$0" 2>/dev/null || printf '%s' "$0")" 2>/dev/null || printf '%s' "$0")"
-
 TRANSPORT_PORT=9040
 DNS_PORT=5353
 GHOST_RULES="/etc/nftables.d/ghost.nft"
@@ -85,7 +81,7 @@ EOF2
     systemctl restart tor
     echo "waiting for Tor TransPort..."
     up=0
-    for _ in $(seq 1 30); do
+    for _ in {1..30}; do
       if (echo > /dev/tcp/127.0.0.1/$TRANSPORT_PORT) 2>/dev/null; then up=1; break; fi
       sleep 1
     done
@@ -116,6 +112,11 @@ EOF2
   portal)
     # Captive-portal hatch: drop the redirect so the hotel/cafe login page
     # loads, then re-enable automatically after 5 minutes.
+    # Our own path is resolved HERE (the only branch that needs it): the
+    # re-enable timer below re-execs "$0", and a relative $0 would break
+    # (silently) if the timer's CWD ever differed. Other branches skip the
+    # two-fork resolution entirely.
+    SCRIPT_ABS="$(readlink -f "$(command -v "$0" 2>/dev/null || printf '%s' "$0")" 2>/dev/null || printf '%s' "$0")"
     nft delete table inet ghost 2>/dev/null || true
     # Timestamped marker: the re-enable timer below only fires if this
     # marker still exists AND the full 5 minutes have elapsed since the
