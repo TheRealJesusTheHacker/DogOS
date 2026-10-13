@@ -7,7 +7,11 @@
 #        dogos-engage route on|off   (IP forwarding for MITM/pivot work)
 set -euo pipefail
 [ "$(id -u)" -eq 0 ] || { echo "error: run as root"; exit 1; }
-TABLE="inet dogos"
+# FAMILY and TABLE are separate nft arguments. They must stay separate
+# words at every call site (quoted individually) — passing "inet dogos"
+# as one quoted word would make nft read it as a single invalid name.
+FAMILY="inet"
+TABLE="dogos"
 SET="engage_ports"
 
 case "${1:-}" in
@@ -16,13 +20,15 @@ case "${1:-}" in
     [ $# -eq 0 ] && { echo "usage: dogos-engage open <port> [port...]"; exit 1; }
     for p in "$@"; do
       case "$p" in ''|*[!0-9]*) echo "invalid port: $p"; exit 1;; esac
-      [ "$p" -ge 1 ] && [ "$p" -le 65535 ] || { echo "invalid port: $p"; exit 1; }
-      nft add element $TABLE $SET "{ $p }"
+      if [ "$p" -lt 1 ] || [ "$p" -gt 65535 ]; then
+        echo "invalid port: $p"; exit 1
+      fi
+      nft add element "$FAMILY" "$TABLE" "$SET" "{ $p }"
       echo "opened TCP/$p (engagement exception — visible, deliberate)"
     done
     ;;
   close)
-    nft flush set $TABLE $SET
+    nft flush set "$FAMILY" "$TABLE" "$SET"
     echo "engagement ports cleared (ghost mode untouched)"
     ;;
   route)
@@ -34,7 +40,8 @@ case "${1:-}" in
     ;;
   status)
     echo "--- engagement ports ---"
-    nft list set $TABLE $SET
+    nft list set "$FAMILY" "$TABLE" "$SET" \
+      || echo "(engage set not present — base firewall ruleset not loaded)"
     echo "--- ip_forward ---"
     sysctl -n net.ipv4.ip_forward | sed 's/^1$/ON (engagement routing)/;s/^0$/off (default)/'
     ;;
