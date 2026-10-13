@@ -18,7 +18,10 @@ if ! command -v ollama >/dev/null 2>&1; then
   installer="$(mktemp /tmp/ollama-install.XXXXXX.sh)"
   trap 'rm -f "$installer"' EXIT
   curl -fsSL "$OLLAMA_INSTALL_URL" -o "$installer"
-  got="$(sha256sum "$installer" | awk '{print $1}')"
+  # sha256sum's output is "<hash>  <file>"; the hash is the first field.
+  # Split it off in-shell (${got%% *}) instead of forking awk for it.
+  got="$(sha256sum "$installer")"
+  got="${got%% *}"
   if [ "$got" != "$OLLAMA_INSTALL_SHA256" ]; then
     echo "ERROR: ollama install script checksum mismatch — NOT executed."
     echo "  expected: $OLLAMA_INSTALL_SHA256"
