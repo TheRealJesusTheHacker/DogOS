@@ -70,6 +70,10 @@ case "${1:-}" in
     - Exits are blocked by many targets; latency kills interactive shells.
     - Turn OFF before active engagement:  dogos-ghost off
 EOF
+    # Fail BEFORE any side effects if tor is missing: write_rules repeats
+    # this check, but only after the torrc is written and tor restarted.
+    id -u debian-tor >/dev/null 2>&1 \
+      || { echo "tor user 'debian-tor' not found — is tor installed?"; exit 1; }
     # Tor transparent-proxy ports (Debian tor reads /etc/tor/torrc.d/)
     mkdir -p /etc/tor/torrc.d
     cat > /etc/tor/torrc.d/dogos-ghost.conf <<EOF2
