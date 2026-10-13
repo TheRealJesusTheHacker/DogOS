@@ -29,4 +29,14 @@ systemctl enable dogos-hostname || true
 # screen. Exits quietly on live media.
 systemctl enable dogos-install-cleanup || true
 
+# Verify the security-critical enables actually landed. They are `|| true`
+# above so a chroot systemctl quirk cannot fail the whole build — but a
+# silent miss would ship an image whose firewall never loads. Warn loudly
+# in the build log instead (warning only, never fatal).
+for unit in nftables apparmor dogos-hostname dogos-install-cleanup; do
+  if [ ! -e "/etc/systemd/system/multi-user.target.wants/$unit.service" ]; then
+    echo "WARNING: $unit.service is NOT enabled — a security control would be missing from the image"
+  fi
+done
+
 echo "dogos hardening hook done"
