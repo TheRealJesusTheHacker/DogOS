@@ -5,6 +5,8 @@
 
 **"All Dogs Go To Heaven."**
 
+**Status: prerelease — complete source, no bootable ISO yet; the first ISO targets real hardware.**
+
 ## What DogOS is
 
 DogOS is a security and penetration-testing Linux distribution, built from
@@ -327,6 +329,10 @@ See `dogos-livebuild/README.md` for live-build 3.x notes (flat hook layout,
 - **v0.1.0 "Doberman" (2026-10-11)** — first public prerelease: complete
   project source, live-build tree (full + lite), `dogos-extras` scaffold,
   design spec, security review, OSINT inventory. No ISO attached yet.
+- **v0.1.1 "Doberman" (2026-10-11)** — hardening and premium repo polish:
+  MIT license, expanded README, CI gate (`bash -n` + shellcheck,
+  SHA-pinned actions), SECURITY.md, issue/PR templates. No ISO attached
+  yet.
 - **Design-complete, scaffold-validated** — `lb config` passes against
   live-build 3.x; package lists verified against Debian forky/Kali rolling.
 - **No bootable ISO yet** — the first ISO build targets real hardware.
