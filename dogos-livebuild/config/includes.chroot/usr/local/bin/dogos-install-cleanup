@@ -56,6 +56,12 @@ elif [ -n "$live_from_lightdm" ]; then
   LIVE_IDENTIFIED="$live_from_lightdm"
 fi
 
+# Paranoia: live-config's artifacts name the LIVE account, which is never
+# root. If they somehow DID name root, treat the account as unidentified
+# (the loud-skip path below) rather than letting step 3 aim userdel at
+# the root account.
+[ "$LIVE_IDENTIFIED" = "root" ] && LIVE_IDENTIFIED=""
+
 # Nothing to clean at all: no live residue artifacts and no live-user
 # account. (Not the loud skip — there is simply nothing here.)
 if [ -z "$LIVE_IDENTIFIED" ] && [ ! -e /etc/sudoers.d/live ] \
@@ -131,6 +137,16 @@ if id "$LIVE_IDENTIFIED" >/dev/null 2>&1; then
     if [ "$live_home" = "/home/$LIVE_IDENTIFIED" ] && [ -d "$live_home" ]; then
       rm -rf "$live_home"
     fi
+  fi
+  # Verify the removal actually happened. If the account is still there,
+  # the cleanup is NOT done: fail loud and leave the marker unset so the
+  # next boot retries — never report success (and disable ourselves)
+  # over a live account that still exists.
+  if id "$LIVE_IDENTIFIED" >/dev/null 2>&1; then
+    msg="dogos-install-cleanup: FAILED to remove live user '$LIVE_IDENTIFIED' — cleanup incomplete, will retry on next boot"
+    echo "$msg" >&2
+    logger -t dogos-install-cleanup "$msg" 2>/dev/null || true
+    exit 1
   fi
   echo "dogos-install-cleanup: removed live user '$LIVE_IDENTIFIED'"
 fi
