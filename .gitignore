@@ -1,0 +1,20 @@
+# --- live-build output (ISOs are gigabytes — never commit) ---
+.build/
+cache/
+chroot/
+binary/
+live-image-*
+*.iso
+*.img
+
+# dogos-extras generated reprepro output (scaffold dirs stay tracked)
+dogos-extras/dists/
+dogos-extras/pool/
+
+# --- OS / editor junk ---
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/
