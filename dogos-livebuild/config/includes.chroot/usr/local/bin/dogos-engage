@@ -43,7 +43,16 @@ case "${1:-}" in
     nft list set "$FAMILY" "$TABLE" "$SET" \
       || echo "(engage set not present — base firewall ruleset not loaded)"
     echo "--- ip_forward ---"
-    sysctl -n net.ipv4.ip_forward | sed 's/^1$/ON (engagement routing)/;s/^0$/off (default)/'
+    # Map the value in-shell: forking a sysctl|sed pipeline for a
+    # two-value lookup is a wasted process on every `status` call.
+    # Output is byte-identical (1 -> ON line, 0 -> off line, anything
+    # else passes through raw, exactly as the sed did).
+    fwd="$(sysctl -n net.ipv4.ip_forward)"
+    case "$fwd" in
+      1) echo "ON (engagement routing)" ;;
+      0) echo "off (default)" ;;
+      *) echo "$fwd" ;;
+    esac
     ;;
   *)
     echo "usage: dogos-engage {open <port> [port...]|close|status|route {on|off}}"
