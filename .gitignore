@@ -10,6 +10,8 @@ live-image-*
 # dogos-extras generated reprepro output (scaffold dirs stay tracked)
 dogos-extras/dists/
 dogos-extras/pool/
+dogos-extras/db/
+dogos-extras/lists/
 
 # --- OS / editor junk ---
 .DS_Store
