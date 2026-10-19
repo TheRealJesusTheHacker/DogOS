@@ -65,6 +65,16 @@ OSINT resource inventory. Release codenames are dog breeds, starting with
 you own or are explicitly authorized to test — never without a signed
 authorization in place. The maintainers are not responsible for misuse.
 
+## Getting DogOS
+
+There is **no ISO to download yet**. The GitHub Releases for this repo are
+source prereleases (v0.1.0 and v0.1.1 "Doberman"); no bootable image is
+attached to either. To run DogOS today you build the ISO yourself from this
+source tree on a Debian host — see [Building from source](#building-from-source)
+below for the honest requirements (real hardware, ~25 GB free disk for the
+full flavor). The first GPG-signed ISO with published checksums is on the
+roadmap under [Status and roadmap](#status-and-roadmap).
+
 ## Flavors
 
 | | `dogos-full` | `dogos-lite` |
@@ -72,8 +82,8 @@ authorization in place. The maintainers are not responsible for misuse.
 | Target | Installed systems, VMs | Live USB, quick recon |
 | ISO size | ~10–11 GB | ~4–5 GB |
 | Pentest set | All 15 Kali metapackages + verified additions | `kali-tools-top10` + verified additions |
-| DogOS layers (OSINT / anonymity / AI) | ✅ | ✅ |
-| Dev + applications layer | ✅ | — (intentionally empty override) |
+| DogOS layers (OSINT / anonymity / AI) | Included | Included |
+| Dev + applications layer | Included | — (intentionally empty override) |
 
 Both flavors share the identity, hardening, amnesiac, and installer stack.
 Flavors work by overlay: `build.sh` copies the tree to a fresh
@@ -351,6 +361,18 @@ Planned (roadmap, not yet implemented):
   installer forces a real password
 - Periodic snapshot ISOs; rolling updates via APT `dist-upgrade`
 
+## Documentation
+
+- `design-spec.md` — the living design document: decisions and architecture.
+- `security-review-2026-10-10.md` — the adversarial review of the design,
+  with findings folded back into the build.
+- `osint-toolkit.md` — the full OSINT resource inventory.
+- `dogos-livebuild/README.md` — live-build 3.x notes for the build tree.
+- `dogos-extras/README.md` — the signed APT repo scaffold and its package queue.
+- [CHANGELOG.md](CHANGELOG.md) — release history.
+- [SECURITY.md](SECURITY.md) — how to report a vulnerability, and the
+  project's threat model.
+
 ## Security
 
 DogOS is an *attack* distro — it assumes the operator is the trusted party
@@ -412,7 +434,7 @@ apply to their work; DogOS's own code is MIT (see below). Highlights:
 MIT — see [LICENSE](LICENSE).
 
 ---
-*Built by Cyberdogs 🐾*
+*Built by Cyberdogs — the unofficial side of Sentinel Safeguard LLC.*
 
 ## Donations
 
