@@ -17,7 +17,9 @@ for svc in avahi-daemon cups rpcbind nfs-client.target; do
 done
 
 # Bubblewrap: sandbox wrappers for high-risk apps (X11 keylogging mitigation).
-# Firefox-ESR gets a bwrap wrapper dropping unnecessary permissions.
+# PLANNED (not yet shipped): a bwrap wrapper for Firefox-ESR dropping
+# unnecessary permissions. Bubblewrap itself is installed via the
+# hardening package list; no wrapper exists in the image today.
 # TODO(build): write /usr/local/bin/firefox-esr-bwrap and point the .desktop at it.
 mkdir -p /etc/dogos/sandbox
 
