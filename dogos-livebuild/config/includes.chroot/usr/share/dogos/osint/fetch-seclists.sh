@@ -8,6 +8,12 @@ set -euo pipefail
 # commit SHAs, so the fetched corpus can't silently drift or be swapped.
 # Bump deliberately — check the commit, then update SECLISTS_COMMIT.
 SECLISTS_COMMIT="cae9eab995852c183fbe5e03fc92471fcac82f0e"  # master as of 2026-10-10
+# Expected SHA256 of the tarball GitHub serves for that commit (computed
+# from a verified download 2026-10-19). Checked BEFORE extraction: a
+# tarball that merely parses could still be the wrong corpus. If GitHub
+# ever regenerates its archives, verify the commit independently, then
+# re-pin this hash alongside SECLISTS_COMMIT.
+SECLISTS_SHA256="4eca60a7efb1f03bb6997a358a86cac4e3bbce064095e8256edd7437b0dd262d"
 DEST="${1:-/usr/share/dogos/osint/wordlists/seclists}"
 URL="https://github.com/danielmiessler/SecLists/archive/${SECLISTS_COMMIT}.tar.gz"
 
@@ -20,6 +26,13 @@ curl -fsSL "$URL" -o "$archive"
 # before the archive proves itself intact (else a partial corpus merges
 # with the old one and looks complete).
 echo "verifying archive integrity ..."
+got="$(sha256sum "$archive")"; got="${got%% *}"
+if [ "$got" != "$SECLISTS_SHA256" ]; then
+  echo "ERROR: SecLists tarball SHA256 mismatch — NOT extracted."
+  echo "  expected: $SECLISTS_SHA256"
+  echo "  got:      $got"
+  exit 1
+fi
 tar -tzf "$archive" >/dev/null || { echo "ERROR: archive is truncated/corrupt — NOT extracted."; exit 1; }
 tar -xz -f "$archive" -C "$DEST" --strip-components=1
 echo "done. Corpus lives in $DEST (Discovery/, Usernames/, Passwords/, ...)"
