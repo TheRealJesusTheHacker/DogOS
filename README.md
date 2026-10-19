@@ -355,8 +355,9 @@ Planned (roadmap, not yet implemented):
 
 DogOS is an *attack* distro — it assumes the operator is the trusted party
 working from potentially hostile networks. It protects operator anonymity
-(Ghost mode, amnesiac live boot), data at rest (LUKS), and toolkit integrity
-(signed repos, checksummed ISOs). It does **not** claim to defend against
+(Ghost mode, amnesiac live boot) and data at rest (LUKS). Toolkit integrity
+via signed repos and checksummed ISOs is **roadmap, not yet implemented**
+(see SECURITY.md) — no ISO or signed repo exists yet. It does **not** claim to defend against
 physical seizure of an unlocked machine, operator OPSEC failures, or targeted
 endpoint compromise by a well-resourced adversary. It is not Qubes — its job
 is keeping the operator safe while they work.
