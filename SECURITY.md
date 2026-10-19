@@ -18,7 +18,8 @@ DogOS is currently in the scaffold stage (prerelease — project
 source, no bootable ISO yet). In-scope for reports:
 
 - The `dogos-*` helper scripts (`dogos-ghost`, `dogos-engage`,
-  `dogos-leaktest`, `dogos-ai-setup`, `dogos-hostname`)
+  `dogos-leaktest`, `dogos-ai-setup`, `dogos-hostname`,
+  `dogos-install-cleanup`)
 - The live-build hooks and `auto/config`
 - The `dogos-extras` repo tooling
 - Anonymity claims (e.g. a leak path Ghost mode doesn't cover)
