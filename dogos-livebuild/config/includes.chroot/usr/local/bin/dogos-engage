@@ -18,6 +18,12 @@ case "${1:-}" in
   open)
     shift
     [ $# -eq 0 ] && { echo "usage: dogos-engage open <port> [port...]"; exit 1; }
+    # Validate EVERY port before opening ANY. Validation and the nft
+    # adds used to be interleaved in one loop, so `open 4444 bogus`
+    # opened 4444 and only then failed: the command reported an error
+    # but a live firewall exception was already in place. Two passes:
+    # collect the valid ports first, then apply them all.
+    ports=()
     for p in "$@"; do
       case "$p" in ''|*[!0-9]*) echo "invalid port: $p"; exit 1;; esac
       # Length first: a digit string too long for bash's integer
@@ -30,6 +36,9 @@ case "${1:-}" in
       if [ "$p" -lt 1 ] || [ "$p" -gt 65535 ]; then
         echo "invalid port: $p"; exit 1
       fi
+      ports+=("$p")
+    done
+    for p in "${ports[@]}"; do
       nft add element "$FAMILY" "$TABLE" "$SET" "{ $p }"
       echo "opened TCP/$p (engagement exception — visible, deliberate)"
     done
