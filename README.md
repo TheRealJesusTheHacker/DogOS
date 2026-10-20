@@ -1,11 +1,39 @@
-[![CI](https://github.com/TheRealJesusTheHacker/DogOS/actions/workflows/ci.yml/badge.svg)](https://github.com/TheRealJesusTheHacker/DogOS/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
 # DogOS
 
 **"All Dogs Go To Heaven."**
 
+DogOS is a Debian-based security and penetration-testing Linux distribution:
+a rolling, Kali-style attack distro with anonymity, an amnesiac live mode,
+hardening by default, and local-AI tooling built in as first-class layers —
+assembled from this source tree with Debian live-build.
+
+[![CI](https://github.com/TheRealJesusTheHacker/DogOS/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/TheRealJesusTheHacker/DogOS/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/TheRealJesusTheHacker/DogOS?include_prereleases&style=flat-square)](https://github.com/TheRealJesusTheHacker/DogOS/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Base: Debian testing](https://img.shields.io/badge/base-Debian_testing_%28forky%29-red.svg?style=flat-square)](https://www.debian.org/releases/testing/)
+[![Status: prerelease](https://img.shields.io/badge/status-prerelease-orange.svg?style=flat-square)](https://github.com/TheRealJesusTheHacker/DogOS/releases)
+
 **Status: prerelease — complete source, no bootable ISO yet; the first ISO targets real hardware.**
+
+## Contents
+
+- [What DogOS is](#what-dogos-is)
+- [Who it's for](#who-its-for)
+- [Getting DogOS](#getting-dogos)
+- [Flavors](#flavors)
+- [Feature rundown](#feature-rundown)
+- [How the pieces fit together](#how-the-pieces-fit-together)
+- [Building from source](#building-from-source)
+- [Configuration](#configuration)
+- [Development and testing](#development-and-testing)
+- [Status and roadmap](#status-and-roadmap)
+- [Documentation](#documentation)
+- [Security](#security)
+- [Contributing](#contributing)
+- [Contact](#contact)
+- [Third-party software](#third-party-software)
+- [License](#license)
+- [Donations](#donations)
 
 ## What DogOS is
 
@@ -51,6 +79,13 @@ document, `security-review-2026-10-10.md` records the adversarial review whose
 findings were folded back into the build, and `osint-toolkit.md` is the full
 OSINT resource inventory. Release codenames are dog breeds, starting with
 **Doberman** (v0.1.0).
+
+**Not the Cyra appliance.** DogOS is a clean-sheet pentest distro, separate
+from the Cyra (formerly J.A.D.E.) project — that separation is a recorded
+design decision (`design-spec.md` §2). The J.A.D.E. → Cyra rename did not
+rename DogOS: the OS keeps its name, and Cyra is not DogOS's shell or
+control point. DogOS's AI layer is the local-model tooling described under
+[Local AI](#local-ai) — nothing more is claimed for it.
 
 ## Who it's for
 
@@ -136,7 +171,8 @@ A dedicated OSINT category ships in the MATE menu.
 ### Anonymity and Ghost mode
 
 Packages: `tor`, `torsocks`, `proxychains4`, `nyx`, `onionshare`, `i2pd`,
-`obfs4proxy`, `dnscrypt-proxy`, `privoxy`.
+`obfs4proxy`, `dnscrypt-proxy`, `privoxy`, `bind9-dnsutils` (the `dig` that
+`dogos-leaktest` uses for its egress check).
 
 `dogos-ghost` implements AnonSurf-style transparent Tor routing:
 
@@ -198,7 +234,17 @@ the results mean with Ghost on vs. off — no theater.
   full-disk encryption offered in the installer. Live sessions use the
   standard Debian live user (`user`) with passwordless sudo — expected on
   live media, stripped from installed systems by `dogos-install-cleanup`.
-- Hardening sysctls (`99-dogos.conf`)
+- Hardening sysctls (`config/includes.chroot/etc/sysctl.d/99-dogos.conf`):
+  IP forwarding off; ICMP redirects and source routing refused (send and
+  accept, all and default); broadcast echo ignored; SYN cookies on;
+  `kernel.dmesg_restrict = 1`; `kernel.kptr_restrict = 2`; unprivileged BPF
+  disabled (`kernel.unprivileged_bpf_disabled = 2`,
+  `net.core.bpf_jit_harden = 2`); and `kernel.yama.ptrace_scope = 1` — set
+  to 1 rather than 2 deliberately: the distro ships its own debuggers (gdb
+  and friends), and 2 would block unprivileged ptrace of even the user's
+  own processes (the rationale is recorded in the file itself). Tools that
+  need relaxed settings get them explicitly via `dogos-engage`, never by
+  weakening these defaults.
 
 ### Local AI
 
@@ -242,6 +288,9 @@ installable with `sudo dpkg -i dogos-scripts_0.2.0_all.deb`:
 All five are syntax-checked and shellcheck-clean in CI. (`dogos-install-cleanup`
 ships separately in the ISO via `includes.chroot` — it runs on installed
 systems, not live media, so it isn't part of the `dogos-scripts` .deb.)
+The staged `.deb` was rebuilt on 2026-10-13 from the current in-tree
+scripts, so it matches the hardened `includes.chroot` versions rather than
+the original pre-hardening build (see `dogos-extras/README.md`).
 
 ### Installer and branding
 
@@ -303,10 +352,19 @@ A build flows: `build.sh [full|lite]` → assemble tree → `./auto/config` →
 chroot (branding, hardening) and at the binary stage (amnesiac boot entry);
 everything under `includes.chroot/` lands in the live filesystem verbatim.
 
+At runtime the image is held together by a small set of systemd units and
+shipped defaults rather than daemons of its own: the hardening hook enables
+the `nftables` base ruleset and AppArmor, `dogos-hostname` (live-boot
+identity), and `dogos-install-cleanup` (first boot on installed systems) —
+and warns loudly in the build log if any of those enables silently failed
+to land. Everything else — Ghost mode, engagement exceptions, AI setup —
+is an explicit operator command, run when the operator asks for it.
+
 ## Building from source
 
 **Honest requirements:** a full `lb build` is heavy — use real hardware (a
-Debian host with live-build 3.x, ~25 GB free disk for `full`, root access).
+Debian host with live-build 3.x — the tree was validated against 3.0~a57 —
+~25 GB free disk for `full`, root access).
 CI only syntax-checks and lints the scripts; nobody's building a 10 GB ISO
 in a free CI runner.
 
@@ -333,6 +391,69 @@ archives on 2026-10-10, but a rolling base moves.
 
 See `dogos-livebuild/README.md` for live-build 3.x notes (flat hook layout,
 `noauto` first, singular `--bootloader`).
+
+## Configuration
+
+DogOS is configured in the open — every default below is a file in this
+repo, not a hidden setting:
+
+- **Build** — `dogos-livebuild/auto/config` holds the live-build settings:
+  distribution (`forky`), archive areas (`main contrib non-free
+  non-free-firmware`), `--debian-installer live`, singular `--bootloader
+  grub`, `iso-hybrid` binary image, and the ISO application / publisher /
+  volume strings. `build.sh` takes one argument, `full` (default) or
+  `lite`.
+- **Packages** — one list per layer in
+  `dogos-livebuild/config/package-lists/` (`dogos-*.list.chroot`); the lite
+  overrides live under `dogos-livebuild/flavors/lite/config/package-lists/`.
+- **Firewall** — the base ruleset is
+  `config/includes.chroot/etc/nftables.conf` (default-deny incoming).
+  Engagement exceptions belong in its `engage_ports` set, managed by
+  `dogos-engage` — not in edits to the base rules mid-engagement.
+- **Kernel hardening** — `config/includes.chroot/etc/sysctl.d/99-dogos.conf`
+  (itemized under [Hardening defaults](#hardening-defaults)).
+- **MAC randomization** —
+  `config/includes.chroot/etc/NetworkManager/conf.d/30-dogos-mac.conf`.
+- **Local AI model** — the `DOGOS_AI_MODEL` environment variable overrides
+  the default model `dogos-ai-setup` pulls (`qwen2.5-coder:7b`).
+- **OSINT API keys** — copy
+  `config/includes.chroot/usr/share/dogos/osint/keys.env.template` to
+  `~/.config/dogos/osint/keys.env` and fill in the services you use. No key
+  values are baked into the image.
+- **Kali archive** — `config/archives/kali.list.chroot` plus the bundled
+  keyring. Read `config/archives/README.md` before touching either: it
+  records which keyring fingerprints are verified against Kali's published
+  values and which are not.
+
+## Development and testing
+
+There is deliberately **no ISO build in CI** — a full `lb build` is a
+multi-hour, ~25 GB job on rolling Debian testing and belongs on real
+hardware. The pre-merge gate (`.github/workflows/ci.yml`, on push and pull
+request to `main`, actions pinned by SHA) is:
+
+- every shell script in the repo must parse (`bash -n`), and
+- every shell script must pass `shellcheck` at severity `warning` and
+  above.
+
+Run the same checks locally before pushing (mirrors the workflow):
+
+```sh
+# from the repo root
+grep -rlE --exclude-dir=.git \
+  '^#!(/(usr/)?bin/(ba|da)?sh|/usr/bin/env (ba)?sh)' . \
+  > /tmp/shell-files.txt
+while IFS= read -r f; do bash -n "$f"; done < /tmp/shell-files.txt
+xargs -a /tmp/shell-files.txt shellcheck -S warning --
+```
+
+Beyond the gate: `lb config` passes against live-build 3.x (validated
+2026-10-10 against 3.0~a57; see `dogos-livebuild/README.md`), and the
+package lists were verified against the live Debian forky / Kali rolling
+archive indices on 2026-10-10 — re-verify with `apt-cache policy` before a
+build, because a rolling base moves. Nothing has been boot-tested yet: no
+ISO has been built, so no hardware validation is claimed anywhere in this
+project.
 
 ## Status and roadmap
 
