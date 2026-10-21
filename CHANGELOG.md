@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Bug hunt sweep #3, 2026-10-21 (stubbed-command probes; no build on
+  the audit VM — live-build cannot run there):
+  - `dogos-engage open` applied ports one `nft add element` call per
+    port, so a failure mid-apply left the earlier ports open while the
+    command reported an error — a half-applied firewall exception. All
+    validated ports now go in a single atomic `nft` call: failure
+    applies none of them.
+  - `dogos-hostname` only fell back to `hostname` when `hostnamectl`
+    was *missing* — a present-but-failing `hostnamectl` meant the
+    random name was never set — and both attempts were `|| true`, so
+    total failure still printed the new name and exited 0. The
+    fallback now fires on failure too, and total failure warns on
+    stderr and exits 1 without claiming the name.
+
 ## [0.1.1] - 2026-10-11
 
 ### Added
