@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Decision execution wave, 2026-10-21 (static verification only — no
+  ISO built; live-build cannot run on the audit VM):
+  - D-13 live-boot credentials: `dogos-live-password` + systemd unit
+    randomize the live user's password on every live boot and display
+    it on the login screen (`/etc/issue`, LightDM greeter full name,
+    tmpfs copy); failure locks the live account — no known-password
+    fallback. Policy recorded in `dogos-livebuild/README.md`.
+  - D-8 Firefox sandbox: `/usr/local/bin/firefox-esr-bwrap` Bubblewrap
+    wrapper + `firefox-esr.desktop` override in `includes.chroot`;
+    the hardening hook's build note is resolved. Sandbox
+    validation rides the first ISO build (D-3).
+  - D-6: `dogos-extras` packaging queue trimmed 21 → 12, with the
+    per-entry kept/cut basis recorded in `dogos-extras/README.md`.
+  - D-11: Calamares slideshow defaults accepted for the first ISO
+    (note resolved in `branding.desc`; branding URLs untouched).
+  - D-7 / D-12 recorded in the README roadmap: weekly automated
+    build + boot smoke ADOPTED once the first ISO exists;
+    pentest-copilot prompt pack KEPT, authored once the ISO line
+    is live.
+
 ### Fixed
 
 - Bug hunt sweep #3, 2026-10-21 (stubbed-command probes; no build on
