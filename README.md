@@ -234,6 +234,11 @@ the results mean with Ghost on vs. off — no theater.
   full-disk encryption offered in the installer. Live sessions use the
   standard Debian live user (`user`) with passwordless sudo — expected on
   live media, stripped from installed systems by `dogos-install-cleanup`.
+  The live user's password is randomized on every live boot by
+  `dogos-live-password` and shown on the login screen (D-13, decided
+  2026-10-21): live media carries no known credential, and if
+  randomization fails the live account is locked rather than falling
+  back to a known password.
 - Hardening sysctls (`config/includes.chroot/etc/sysctl.d/99-dogos.conf`):
   IP forwarding off; ICMP redirects and source routing refused (send and
   accept, all and default); broadcast echo ignored; SYN cookies on;
@@ -473,13 +478,19 @@ Planned (roadmap, not yet implemented):
 - First bootable ISO (full + lite), GPG-signed with checksums and a
   fingerprint published out-of-band
 - Weekly automated build + boot smoke test (bit-rot defense for a rolling
-  base)
+  base) — ADOPTED (D-7, decided 2026-10-21): takes effect once the
+  first ISO exists (the first build is owner-hands, D-3)
 - `dogos-extras` going live: offline master signing key, repo URL, client
   apt config in the image, queued packages vendored in
-- Firefox Bubblewrap sandbox wrapper
-- Pentest-copilot system-prompt pack
-- Live-boot credentials documented loudly (or randomized per boot);
-  installer forces a real password
+- Firefox Bubblewrap sandbox wrapper — SHIPPED in the live-build tree
+  (D-8, 2026-10-21): wrapper + desktop override in `includes.chroot`;
+  sandbox validation rides the first ISO build (D-3)
+- Pentest-copilot system-prompt pack — KEPT (D-12, decided 2026-10-21):
+  authored once the ISO line is live
+- Live-boot credentials: randomized per boot and shown on the login
+  screen (D-13, decided 2026-10-21; implemented in the live-build
+  tree, validation rides the first ISO build); installer forces a
+  real password
 - Periodic snapshot ISOs; rolling updates via APT `dist-upgrade`
 
 ## Documentation
