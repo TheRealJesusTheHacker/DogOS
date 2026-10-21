@@ -38,8 +38,15 @@ case "${1:-}" in
       fi
       ports+=("$p")
     done
+    # Apply in ONE nft call: a single `add element` carrying the whole
+    # port set is atomic, so an nft failure applies NONE of the ports.
+    # The old per-port loop applied them one by one — a failure on the
+    # second port left the first already open while the command
+    # reported an error: a half-applied firewall exception.
+    elems=""
+    for p in "${ports[@]}"; do elems+="${elems:+, }$p"; done
+    nft add element "$FAMILY" "$TABLE" "$SET" "{ $elems }"
     for p in "${ports[@]}"; do
-      nft add element "$FAMILY" "$TABLE" "$SET" "{ $p }"
       echo "opened TCP/$p (engagement exception — visible, deliberate)"
     done
     ;;

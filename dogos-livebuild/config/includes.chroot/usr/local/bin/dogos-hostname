@@ -11,9 +11,23 @@ fi
 
 WORDS=(hound doberman ghost shadow fang onyx jet rook sable echo)
 NAME="dogos-${WORDS[$RANDOM % ${#WORDS[@]}]}-$((RANDOM % 9000 + 1000))"
+# Try hostnamectl, then FALL BACK to hostname on FAILURE as well as on
+# absence: the old if/else only fell back when hostnamectl was missing,
+# so a present-but-failing hostnamectl (no systemd, policy refusal)
+# meant the name was never set at all. And both attempts were `|| true`,
+# so even total failure still printed "amnesiac hostname: <name>" and
+# exited 0 — a success claim for a name the system never took. Now a
+# total failure is loud (stderr + exit 1, so the boot log shows the
+# unit failed) and never claims the new name.
+set_ok=0
 if command -v hostnamectl >/dev/null 2>&1; then
-  hostnamectl set-hostname "$NAME" 2>/dev/null || true
-else
-  hostname "$NAME" 2>/dev/null || true
+  hostnamectl set-hostname "$NAME" 2>/dev/null && set_ok=1
+fi
+if [ "$set_ok" -eq 0 ] && command -v hostname >/dev/null 2>&1; then
+  hostname "$NAME" 2>/dev/null && set_ok=1
+fi
+if [ "$set_ok" -eq 0 ]; then
+  echo "dogos-hostname: WARNING — could not set hostname (hostnamectl/hostname both failed); keeping the previous name" >&2
+  exit 1
 fi
 echo "amnesiac hostname: $NAME"
