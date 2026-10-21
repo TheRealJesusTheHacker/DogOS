@@ -1,7 +1,8 @@
 ---
 # DogOS Calamares branding.
-# Slideshow: none yet — Calamares falls back to the default slides when no
-# slideshow/ dir is referenced (planned, see README roadmap).
+# Slideshow: Calamares defaults accepted for the first ISO (D-11,
+# decided 2026-10-21) — no slideshow/ dir is referenced, so Calamares
+# falls back to its default slides.
 componentName:  dogos
 
 welcomeStyleCalamares: false
