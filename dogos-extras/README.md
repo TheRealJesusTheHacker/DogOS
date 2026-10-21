@@ -38,7 +38,45 @@ Signed-By: /usr/share/keyrings/dogos-extras.gpg
   marker, checksum-pinned Ollama installer). Version unchanged at 0.2.0;
   the repo has never been published (SignWith is still a placeholder).
 - REJECTED 2026-10-10: LOIC — audit found no maintained port; see design spec
-- Queued (pip → vendored, hash-pinned): holehe, maigret, snscrape, shodan, social-analyzer, toutatis, whisper, sgpt (Shell-GPT), aichat
-- Queued (manual builds): phoneinfoga, onionsearch, blackbird, ghunt, ligolo, cutter
-- Queued (upstream debs, mirrored+verified): feather-wallet, yggdrasil, retroshare, gh (GitHub CLI), android-tools-adb/fastboot, bless
+- Queued (pip → vendored, hash-pinned): holehe, maigret, snscrape, shodan, sgpt (Shell-GPT), aichat
+- Queued (manual builds): phoneinfoga, blackbird, ghunt
+- Queued (upstream debs, mirrored+verified): feather-wallet, yggdrasil, retroshare
 - RESOLVED via APT 2026-10-10: sherlock, photon, slowloris, dnstwist, instaloader, finalrecon, ffuf, gobuster, chisel, bloodhound, hcxtools, hcxdumptool, ghidra, valgrind, dnscrypt-proxy, privoxy, llama.cpp (all in dogos-*.list.chroot)
+
+## Packaging queue trim — 2026-10-21 (D-6)
+
+Decision (2026-10-21): trim the queue to the tools the ISO actually
+calls BEFORE packaging anything. Packaging itself still binds after
+the owner-hands repo setup (D-5) lands — nothing was packaged in this
+trim and no tooling or scripts were removed; this is a queue-record
+trim only. Basis rule: a KEEP is named as dogos-extras-delivered in a
+live-build package list (`dogos-livebuild/config/package-lists/`) or
+invoked by content the ISO ships; a CUT appears nowhere in the
+live-build tree outside this queue and its root-README summary.
+
+Kept (12):
+
+- holehe — named in `dogos-osint.list.chroot` (pip via dogos-extras)
+- maigret — named in `dogos-osint.list.chroot` (pip via dogos-extras)
+- snscrape — named in `dogos-osint.list.chroot` (pip via dogos-extras)
+- shodan — named in `dogos-osint.list.chroot`; the ISO also ships its API-key slot (`keys.env.template`) and bookmark-pack entry
+- sgpt (Shell-GPT) — named in `dogos-ai.list.chroot` (pip via dogos-extras)
+- aichat — named in `dogos-ai.list.chroot` and in the shipped `dogos-ai-setup` opt-in notice
+- phoneinfoga — named in `dogos-osint.list.chroot` (manual via dogos-extras)
+- blackbird — named in `dogos-osint.list.chroot` (manual via dogos-extras)
+- ghunt — named in `dogos-osint.list.chroot` (manual via dogos-extras)
+- feather-wallet — named in `dogos-anonymity.list.chroot` (manual via dogos-extras)
+- yggdrasil — named in `dogos-anonymity.list.chroot` (packaging-verify line; extras is the tree's route for non-Debian tools)
+- retroshare — named in `dogos-anonymity.list.chroot` (packaging-verify line; extras is the tree's route for non-Debian tools)
+
+Cut (9):
+
+- social-analyzer — no package list or shipped ISO content names it
+- toutatis — no package list or shipped ISO content names it
+- whisper — no package list or shipped ISO content names it
+- onionsearch — no package-list/shipped reference (the OSINT list's manual entry is onionscan, a different tool)
+- ligolo — no reference; the tunnelling slot is already filled by chisel via APT
+- cutter — no reference; the reverse-engineering slot is already filled by ghidra via the Kali lists
+- gh (GitHub CLI) — no package list or script invokes it; the dev layer ships git + git-lfs via APT
+- android-tools-adb/fastboot — not named in any package list or shipped content
+- bless — no reference; the hex-editing slot is already filled by hexedit in `dogos-dev.list.chroot`
