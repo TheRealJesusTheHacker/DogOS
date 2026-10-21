@@ -1,0 +1,26 @@
+# DogOS override of the Debian firefox-esr desktop entry (D-8, decided
+# 2026-10-21): identical in purpose to the packaged entry, but Exec
+# routes through the Bubblewrap sandbox wrapper so launcher starts are
+# sandboxed. This file replaces /usr/share/applications/firefox-esr.desktop
+# in the image via includes.chroot.
+[Desktop Entry]
+Name=Firefox ESR
+GenericName=Web Browser
+Comment=Browse the World Wide Web
+Exec=/usr/local/bin/firefox-esr-bwrap %u
+Terminal=false
+Type=Application
+Icon=firefox-esr
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/vnd.mozilla.xul+xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;
+StartupNotify=true
+StartupWMClass=firefox-esr
+Actions=new-window;new-private-window;
+
+[Desktop Action new-window]
+Name=Open a New Window
+Exec=/usr/local/bin/firefox-esr-bwrap --new-window %u
+
+[Desktop Action new-private-window]
+Name=Open a New Private Window
+Exec=/usr/local/bin/firefox-esr-bwrap --private-window %u

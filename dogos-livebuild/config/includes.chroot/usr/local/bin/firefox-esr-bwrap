@@ -1,0 +1,83 @@
+#!/bin/bash
+# firefox-esr-bwrap — Bubblewrap sandbox wrapper for Firefox-ESR.
+#
+# Shipped per D-8 (decided 2026-10-21); resolves the build note
+# that stood in config/hooks/0200-dogos-hardening.chroot. The
+# firefox-esr.desktop override in includes.chroot points at this
+# wrapper, so menu/launcher starts run sandboxed.
+#
+# What the sandbox does (X11-keylogging / blast-radius mitigation from
+# the hardening spec): Firefox gets its own PID, IPC and UTS
+# namespaces, a private /tmp, a read-only system (/usr, /etc), and a
+# mostly-empty home — only ~/.mozilla (the profile) and ~/Downloads
+# are bound in from the real home. Network stays shared: a browser
+# that cannot reach the network is not a browser.
+#
+# If bubblewrap itself is missing, the wrapper says so loudly on
+# stderr and starts Firefox UNSANDBOXED rather than leaving the
+# operator with no browser (functionality first). If bubblewrap is
+# present, its failure is Firefox's failure — there is no quiet
+# unsandboxed retry.
+#
+# Validation: sandbox behaviour can only be validated on a build host
+# / the first ISO (D-3). This wrapper is static-verified only
+# (bash -n, shellcheck, stubbed-command probes) until then.
+set -euo pipefail
+
+if ! command -v bwrap >/dev/null 2>&1; then
+  echo "firefox-esr-bwrap: WARNING — bubblewrap (bwrap) not found; starting Firefox WITHOUT the sandbox" >&2
+  exec firefox-esr "$@"
+fi
+
+# The only real-home subdirectories the sandbox exposes — create them
+# so the binds below always have a target.
+mkdir -p "$HOME/.mozilla" "$HOME/Downloads"
+
+args=(
+  --unshare-pid
+  --unshare-ipc
+  --unshare-uts
+  --share-net
+  --die-with-parent
+  --new-session
+  --hostname dogos-firefox
+  --ro-bind /usr /usr
+  --symlink usr/bin /bin
+  --symlink usr/lib /lib
+  --symlink usr/lib64 /lib64
+  --symlink usr/sbin /sbin
+  --ro-bind /etc /etc
+  # systemd-resolved stub: /etc/resolv.conf may symlink into /run
+  --ro-bind-try /run/systemd/resolve /run/systemd/resolve
+  --proc /proc
+  --dev /dev
+  --tmpfs /tmp
+  --dir "$HOME"
+  --bind "$HOME/.mozilla" "$HOME/.mozilla"
+  --bind "$HOME/Downloads" "$HOME/Downloads"
+  --dir "$HOME/.cache"
+  --setenv HOME "$HOME"
+  --dev-bind-try /dev/dri /dev/dri
+  --ro-bind-try /tmp/.X11-unix /tmp/.X11-unix
+)
+
+# Session bus / audio / display sockets live in XDG_RUNTIME_DIR.
+if [ -n "${XDG_RUNTIME_DIR:-}" ] && [ -d "$XDG_RUNTIME_DIR" ]; then
+  args+=(--bind "$XDG_RUNTIME_DIR" "$XDG_RUNTIME_DIR"
+         --setenv XDG_RUNTIME_DIR "$XDG_RUNTIME_DIR")
+fi
+if [ -n "${DISPLAY:-}" ]; then
+  args+=(--setenv DISPLAY "$DISPLAY")
+fi
+if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+  args+=(--setenv WAYLAND_DISPLAY "$WAYLAND_DISPLAY")
+fi
+if [ -n "${XAUTHORITY:-}" ] && [ -f "$XAUTHORITY" ]; then
+  args+=(--ro-bind "$XAUTHORITY" "$XAUTHORITY"
+         --setenv XAUTHORITY "$XAUTHORITY")
+fi
+if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+  args+=(--setenv DBUS_SESSION_BUS_ADDRESS "$DBUS_SESSION_BUS_ADDRESS")
+fi
+
+exec bwrap "${args[@]}" firefox-esr "$@"
