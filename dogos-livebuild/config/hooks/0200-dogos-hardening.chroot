@@ -26,6 +26,12 @@ mkdir -p /etc/dogos/sandbox
 # Amnesiac identity: randomize hostname on live boot, randomize MACs always
 systemctl enable dogos-hostname || true
 
+# Live-boot credentials (D-13, decided 2026-10-21): live media carries
+# no known password — dogos-live-password generates a fresh one every
+# live boot, displays it on the login screen, and locks the live
+# account rather than falling back if generation fails.
+systemctl enable dogos-live-password || true
+
 # First-boot cleanup: strip live-session residue (live user, its NOPASSWD
 # grant, live autologin) from Calamares-installed systems before the login
 # screen. Exits quietly on live media.
@@ -35,7 +41,7 @@ systemctl enable dogos-install-cleanup || true
 # above so a chroot systemctl quirk cannot fail the whole build — but a
 # silent miss would ship an image whose firewall never loads. Warn loudly
 # in the build log instead (warning only, never fatal).
-for unit in nftables apparmor dogos-hostname dogos-install-cleanup; do
+for unit in nftables apparmor dogos-hostname dogos-live-password dogos-install-cleanup; do
   if [ ! -e "/etc/systemd/system/multi-user.target.wants/$unit.service" ]; then
     echo "WARNING: $unit.service is NOT enabled — a security control would be missing from the image"
   fi

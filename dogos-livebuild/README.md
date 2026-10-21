@@ -28,6 +28,26 @@ Scaffold for building the DogOS live ISO. Maps 1:1 to `../design-spec.md`.
   Then `sudo lb build` inside the build dir, and rename the ISO
   afterwards (3.x dropped --image-name): `mv live-image-*.iso dogos-<flavor>.iso`
 
+## Live-boot credentials (D-13, decided 2026-10-21)
+
+Policy: **live media carries no known credential.** The live user's
+password is randomized on every live boot by
+`config/includes.chroot/usr/local/bin/dogos-live-password`, run by
+`dogos-live-password.service` (ordered after live-config, before the
+display manager). The generated password is displayed on the login
+screen — in `/etc/issue` above the console login prompt, in the live
+user's full name beside its LightDM greeter entry, and in a tmpfs copy
+at `/run/dogos/live-password` — so only the operator in front of the
+machine knows it.
+
+Failure state: if generation or the password change fails, the script
+locks the live account, states on the login screen that live login is
+disabled, and exits non-zero. It never falls back to a known or
+default password. Installed systems are unaffected (the script exits
+quietly off live media; the installer-created user keeps the password
+chosen in Calamares). Behaviour is validated on the first ISO build
+(D-3) — from this tree it is static-verified only.
+
 ## Live-build 3.x notes (validated 2026-10-10 against 3.0~a57)
 - Hooks are flat: `config/hooks/*.chroot`, `config/hooks/*.binary`
   (no `live/` subdir, no `.hook` infix — the old layout is silently ignored)
