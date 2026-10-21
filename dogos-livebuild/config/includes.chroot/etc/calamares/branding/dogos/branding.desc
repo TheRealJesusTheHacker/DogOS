@@ -1,6 +1,5 @@
 ---
-# DogOS Calamares branding. TODO(site): point product/support URLs at the
-# DogOS site once it exists; for now the repo is the canonical home.
+# DogOS Calamares branding.
 # Slideshow: none yet — Calamares falls back to the default slides when no
 # slideshow/ dir is referenced (planned, see README roadmap).
 componentName:  dogos
