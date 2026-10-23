@@ -37,6 +37,13 @@ Signed-By: /usr/share/keyrings/dogos-extras.gpg
   ghost/engage/ai-setup hardening (atomic ghost-rules publish, portal
   marker, checksum-pinned Ollama installer). Version unchanged at 0.2.0;
   the repo has never been published (SignWith is still a placeholder).
+- REBUILT AGAIN 2026-10-23 (fleet sweep #4): the 2026-10-13 repack still
+  predated the sweep #3 fixes — its `dogos-engage` applied ports one by
+  one (a mid-apply failure left a half-applied firewall exception) and
+  its `dogos-hostname` could claim a name it never set. Repacked from
+  the current tree; all five scripts byte-verified against
+  `dogos-livebuild/config/includes.chroot/usr/local/bin/` after the
+  rebuild. Version unchanged at 0.2.0.
 - REJECTED 2026-10-10: LOIC — audit found no maintained port; see design spec
 - Queued (pip → vendored, hash-pinned): holehe, maigret, snscrape, shodan, sgpt (Shell-GPT), aichat
 - Queued (manual builds): phoneinfoga, blackbird, ghunt

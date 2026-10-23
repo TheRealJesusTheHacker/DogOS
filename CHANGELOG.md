@@ -31,6 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fleet sweep #4, 2026-10-23: the staged `dogos-scripts_0.2.0_all.deb`
+  in `dogos-extras/staging/` still shipped the pre-sweep-#3
+  `dogos-engage` (per-port, non-atomic applies) and `dogos-hostname`
+  (success claimed on failure), even though the READMEs described the
+  package as matching the hardened in-tree scripts. The `.deb` was
+  repacked from the current `includes.chroot` scripts and all five
+  payloads byte-verified against the tree. Version unchanged at 0.2.0.
 - Bug hunt sweep #3, 2026-10-21 (stubbed-command probes; no build on
   the audit VM — live-build cannot run there):
   - `dogos-engage open` applied ports one `nft add element` call per

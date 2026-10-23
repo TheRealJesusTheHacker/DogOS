@@ -293,9 +293,12 @@ installable with `sudo dpkg -i dogos-scripts_0.2.0_all.deb`:
 All five are syntax-checked and shellcheck-clean in CI. (`dogos-install-cleanup`
 ships separately in the ISO via `includes.chroot` — it runs on installed
 systems, not live media, so it isn't part of the `dogos-scripts` .deb.)
-The staged `.deb` was rebuilt on 2026-10-13 from the current in-tree
+The staged `.deb` was rebuilt on 2026-10-23 from the current in-tree
 scripts, so it matches the hardened `includes.chroot` versions rather than
-the original pre-hardening build (see `dogos-extras/README.md`).
+the original pre-hardening build (see `dogos-extras/README.md`). An
+earlier rebuild (2026-10-13) predated the sweep #3 `dogos-engage` /
+`dogos-hostname` fixes; the 2026-10-23 repack includes them, and all
+five scripts in the package were byte-verified against the tree.
 
 ### Installer and branding
 
