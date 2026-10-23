@@ -318,11 +318,10 @@ for everything Debian doesn't ship:
 
 - **Packaged:** `dogos-scripts` 0.2.0 (engage/ghost/ai-setup/leaktest/hostname)
 - **Queued (pip → vendored, hash-pinned):** holehe, maigret, snscrape,
-  shodan, social-analyzer, toutatis, whisper
-- **Queued (manual builds):** phoneinfoga, onionsearch, blackbird, ghunt,
-  ligolo, cutter
+  shodan, sgpt (Shell-GPT), aichat
+- **Queued (manual builds):** phoneinfoga, blackbird, ghunt
 - **Queued (upstream debs, mirrored + verified):** feather-wallet,
-  yggdrasil, retroshare, gh (GitHub CLI), android-tools-adb/fastboot, bless
+  yggdrasil, retroshare
 - **Rejected after audit (2026-10-10):** LOIC — no maintained port exists;
   modern stress tools (slowloris, hping3) cover the capability
 
