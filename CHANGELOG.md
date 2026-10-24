@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fleet sweep #5, 2026-10-24: `dogos-live-password` re-appended the
+  whole previous `/etc/issue` below each new login banner, so a re-run
+  (service restart, persistent live media) stacked every earlier
+  boot's password under the current one and grew the file without
+  bound. The banner rewrite now strips earlier DogOS banner and
+  fail-closed lines while preserving the system's own issue content.
+  Static verification only (stubbed-command probe: repeated runs hold
+  the file at one banner; no ISO built).
 - Fleet sweep #4, 2026-10-23: the staged `dogos-scripts_0.2.0_all.deb`
   in `dogos-extras/staging/` still shipped the pre-sweep-#3
   `dogos-engage` (per-port, non-atomic applies) and `dogos-hostname`
