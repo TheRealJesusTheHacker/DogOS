@@ -16,6 +16,22 @@ for svc in avahi-daemon cups rpcbind nfs-client.target; do
   systemctl mask "$svc" 2>/dev/null || true
 done
 
+# Operator tools stay INSTALLED but do not auto-run (fleet lockdown
+# 2026-10-31: unused daemons listening by default contradict this image's
+# own "no listening services by default" posture). Disabling autostart
+# removes no capability:
+#  - tor: dogos-ghost runs `systemctl restart tor` itself when Ghost
+#    mode is switched on; proxychains users start it the same way.
+#  - i2pd / dnscrypt-proxy / privoxy: interactive anonymity tools with
+#    no default wiring in this image (nothing points DNS or proxy
+#    config at them); the operator starts them when an engagement
+#    needs them (`systemctl start <unit>`).
+#  - docker / containerd: dev-layer daemons; the CLIs and compose stay
+#    installed, the operator starts the daemon when needed.
+for svc in tor i2pd dnscrypt-proxy privoxy docker.service docker.socket containerd; do
+  systemctl disable "$svc" 2>/dev/null || true
+done
+
 # Bubblewrap: sandbox wrappers for high-risk apps (X11 keylogging
 # mitigation). SHIPPED (D-8, decided 2026-10-21): /usr/local/bin/
 # firefox-esr-bwrap and the firefox-esr.desktop override in
@@ -49,5 +65,17 @@ for unit in nftables apparmor dogos-hostname dogos-live-password dogos-install-c
     echo "WARNING: $unit.service is NOT enabled — a security control would be missing from the image"
   fi
 done
+
+# Same discipline for the lockdown disables above: if a package's
+# enablement symlink survived, the daemon would auto-run despite the
+# disable — warn loudly rather than ship that silently.
+for unit in tor i2pd dnscrypt-proxy privoxy docker containerd; do
+  if [ -e "/etc/systemd/system/multi-user.target.wants/$unit.service" ]; then
+    echo "WARNING: $unit.service is STILL enabled — an operator-tool daemon would auto-run in the image"
+  fi
+done
+if [ -e /etc/systemd/system/sockets.target.wants/docker.socket ]; then
+  echo "WARNING: docker.socket is STILL enabled — the Docker daemon would socket-activate in the image"
+fi
 
 echo "dogos hardening hook done"
